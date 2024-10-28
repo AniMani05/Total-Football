@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>CSS Examples</title>
+        <link rel="stylesheet" href="../static/login.css">
+    </head>
+
+    <body>
+        <div class="header-box" id="id_header_div">
+            <div class="centered" id="id_site_name">Blog Master</div>
+            <div class="bottom" id="id_register_link">
+                <a href="{% url 'register' %}">Register</a>
+            </div>
+        </div>
+        <div class="loginform">
+            <div id="id_page_name">Login</div>
+            <form method="post" action="{% url 'login' %}">
+                <table>
+                    {{form.as_table}}
+                </table>
+                {% csrf_token %}
+                <button type="submit" id="id_login_button">Submit</button>
+            </form>
+        </div>
+    </body>
+</html>

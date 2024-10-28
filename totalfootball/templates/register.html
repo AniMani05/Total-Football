@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>CSS Examples</title>
+        <link rel="stylesheet" href="../static/login.css">
+    </head>
+
+    <body>
+        <div class="header-box" id="id_header_div">
+            <div class="centered" id="id_site_name">Blog Master</div>
+            <div class="bottom" id="id_login_link">
+                <a href="/login">Login</a>
+            </div>
+        </div>
+        <div class="loginform">
+            <div id="id_page_name">Register</div>
+            <form method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+                <table>
+                    {% for field in form %}
+                        <tr>
+                            <th>{{ field.label_tag }}</th>
+                            <td>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="error">
+                                        <ul class="errorlist">
+                                            {{ field.errors }}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <button class="submitbutton" id="id_register_button">Submit</button>
+            </form>
+
+            {% for error in form.non_field_errors %}
+                <p class="error">
+                    <ul class="errorlist">
+                        {{ error }}
+                    </ul>
+                </p>
+            {% endfor %}
+        </div>
+    </body>
+</html>

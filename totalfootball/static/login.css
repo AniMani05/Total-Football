@@ -1,0 +1,146 @@
+body {
+    background-color: #F0F0F0;
+}
+
+.header-box {
+    background-color: #1F2A44;
+    width: 100%;
+    height: 7vw; 
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 10px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+    padding: 0; /* Reset padding */
+    margin: 0;  /* Reset margin */
+    border: 1px solid #ccc; /* Ensure a uniform border */
+    box-sizing: border-box; /* Include padding and border in height */
+    height: 2vw; /* Uniform height */
+    width: 20vw;
+}
+
+button {
+    height: 2vw; /* Same height as input fields */
+    box-sizing: border-box;
+    font-size: 18px; /* Ensure button text is the same size */
+    background-color: #00CFFF;
+}
+
+.centered {
+    align-self: center;
+    margin-right: auto;
+    padding: 10px;
+    color: white;
+    text-align: left;
+    padding: 1vw;
+    font-size: 5vw;
+}
+.bottom {
+    align-self: flex-end;
+    padding: 10px;
+    color: white;
+    text-align: right;
+    padding: 1vw;
+    font-size: 2vw;
+}
+
+.link-group {
+    display: flex;
+    justify-content: space-around;
+}
+
+.top {
+    align-self: flex-start;
+    padding: 10px;
+    color: white;
+    text-align: right;
+    padding: 1vw;
+    font-size: 2vw;
+}
+
+.loginform {
+    width: 100%;
+    height: auto; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 10px;
+    flex-direction: column;
+    margin-top: 5px;
+}
+
+#id_page_name {
+    text-align: center;
+    font-size:3vw;
+}
+
+.input-container {
+    margin-top: 5px;
+    display: flex;
+}
+
+#id_username {
+    width: 20vw;
+    height: 3vw;
+}
+
+label {
+    font-size: 2vw;
+}
+
+#submitbutton {
+    background-color: lightgrey;
+    padding: 5px;
+    margin: auto;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+    font-size: 18px;
+    height: 50px;
+    border-radius: 10px;
+}
+
+a {
+    color:white;
+}
+
+label {
+    font-size: 18px;
+}
+
+input {
+    font-size: 18px;
+}
+
+.comment {
+    display: block;
+    margin-left: 40px;
+    font-size: 18px;
+}
+
+.inner_post {
+    display: block;
+    padding-bottom: 10px;
+    font-size: 18px;
+}
+
+.italics {
+    font-style: italic;
+}
+
+.post {
+    display: block;
+}
+
+.posts {
+    margin: auto;
+}
+
+.otherprofile {
+    color: black;
+}
