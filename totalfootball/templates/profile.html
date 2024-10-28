@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>CSS Examples</title>
+        <link rel="stylesheet" href="../static/login.css">
+    </head>
+
+    <body>
+        <div class="header-box" id="id_header_div">
+            <div class="centered" id="id_site_name">Blog Master</div>
+            <div class="bottom" id="id_nav_profile">
+                <a href="{% url 'profile' user.id%}">{{user.first_name}} {{user.last_name}}</a>
+
+            </div>
+            <div class="bottom" id="id_nav_global_stream">
+                <a href="/globalstream">Global</a>
+            </div>
+            <div class="bottom" id="id_nav_follower_stream">
+                <a href="/followers">Followers</a>
+            </div>
+            <div class="bottom" id="id_nav_logout">
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+        <div class="loginform">
+            {% if other %}
+                <div id="id_page_name">{{ otherUser.first_name }} {{ otherUser.last_name}} Profile</div>
+                {% if not otherUser.profile.picture %}
+                    <img id="id_user_picture" src="../static/Jacquees.jpeg" alt="Profile Picture">
+                {% else %}
+                    <img id="id_user_picture" src="{% url 'photo' otherUser.id %}" alt="Profile Picture">
+                {% endif %}
+                <div id="id_user_bio">
+                    {{ otherUser.profile.bio }}
+                </div>
+                {% if not following %}
+                    <form method="POST" action="{% url 'follow_user' user_id=otherUser.id %}">
+                        {% csrf_token %}
+                        <button type="submit" id="id_follow">Follow</button>
+                    </form>
+                {% else %}
+                    <form method="POST" action="{% url 'unfollow_user' user_id=otherUser.id %}">
+                        {% csrf_token %}
+                        <button type="submit" id="id_unfollow">Unfollow</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <div id="id_page_name">{{ request.user.first_name }} {{request.user.last_name}} Profile</div>
+                {% if not request.user.profile.picture %}
+                    <img id="id_user_picture" src="../static/Jacquees.jpeg" alt="Profile Picture">
+                {% else %}
+                    <img id="id_user_picture" src="{% url 'photo' request.user.id %}" alt="Profile Picture">
+                {% endif %}
+                <form action="{% url 'profile' request.user.id%}" method="POST" enctype="multipart/form-data" >
+                    <table>
+                        {{form}}
+                    </table>
+                    {% csrf_token %}
+                    <button id="id_update_profile_button">Submit</button>
+                </form>
+                <p>You are following:</p>
+                {% for profile in followers %}
+                    <li>
+                        <a id="id_profile_link_{{ profile.user.username }}" href="{% url 'profile' profile.user.id %}">{{ profile.user.username }}</a>
+                    </li>  
+                {% endfor %}
+            {% endif %}
+        </div>
+    </body>
+</html>

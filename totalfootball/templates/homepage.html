@@ -10,13 +10,13 @@
         <div class="header-box" id="id_header_div">
             <div class="centered" id="id_site_name">Total Football</div>
             <div class="bottom" id="id_nav_profile">
-                <a href="/login">{{user.first_name}} {{user.last_name}}</a>
+                <a href="{% url 'profile' user.id%}">{{user.first_name}} {{user.last_name}}</a>
             </div>
             <div class="bottom" id="id_nav_global_stream">
-                <a href="/login">Global</a>
+                <a href="/globalstream">Global</a>
             </div>
             <div class="bottom" id="id_nav_follower_stream">
-                <a href="/login">Followers</a>
+                <a href="/followers">Followers</a>
             </div>
             <div class="bottom" id="id_nav_logout">
                 <a href="/logout">Logout</a>

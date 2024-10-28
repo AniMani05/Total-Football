@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from .models import User
 from django.contrib.auth.decorators import login_required
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, ProfileForm
 
 def homepage_action(request):
     return render(request, "homepage.html")
@@ -41,6 +42,7 @@ def register_action(request):
     # Just display the registration form if this is a GET request.
     if request.method == 'GET':
         context['form'] = RegisterForm()
+        print("Returning form")
         return render(request, 'register.html', context)
 
     # Creates a bound form from the request POST parameters and makes the 
@@ -54,6 +56,7 @@ def register_action(request):
     
     if form.cleaned_data['password1'] != form.cleaned_data['password2']:
         context['error'] = 'Passwords do not match.'
+        print("Password error")
         return render(request, 'register.html', context)
 
     # At this point, the form data is valid.  Register and login the user.
@@ -62,6 +65,7 @@ def register_action(request):
                                         email=form.cleaned_data['email'],
                                         first_name=form.cleaned_data['first_name'],
                                         last_name=form.cleaned_data['last_name'])
+    new_user.is_active = True
     new_user.save()
     
     new_user = authenticate(username=form.cleaned_data['username'],
@@ -79,3 +83,38 @@ def logout_action(request):
     logout(request)
     
     return redirect('login')
+
+def profile_action(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    context = {}
+
+    context['other'] = user_id != request.user.id
+
+    if not context['other']:
+        print("User is viewing their own profile")
+
+        if request.method == "GET":
+            form = ProfileForm(initial={
+                'team_name': request.user.team_name,
+                'profile_image': request.user.profile_image
+            })
+            context['form'] = form
+            return render(request, 'profile.html', context)
+
+        form = ProfileForm(request.POST, request.FILES)
+        if form.is_valid():
+            request.user.team_name = form.cleaned_data['team_name']
+            if 'profile_image' in request.FILES:
+                request.user.profile_image = form.cleaned_data['profile_image']
+            request.user.save()
+
+            return redirect('profile_action', user_id=request.user.id)
+        else:
+            context['form'] = form
+            return render(request, 'profile.html', context)
+
+    else:
+        context['form'] = None
+        context['otherUser'] = user
+
+    return render(request, "profile.html", context)

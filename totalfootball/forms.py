@@ -3,6 +3,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 
+from .models import User
+
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=20)
     password = forms.CharField(max_length=200, widget=forms.PasswordInput())
@@ -60,3 +62,13 @@ class RegisterForm(forms.Form):
         # We must return the cleaned data we got from the cleaned_data
         # dictionary
         return username
+        
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['team_name', 'profile_image']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['team_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['profile_image'].widget.attrs.update({'class': 'form-control-file'})
