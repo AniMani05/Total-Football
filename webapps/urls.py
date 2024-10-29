@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from totalfootball.views import login_action, register_action, homepage_action, logout_action, profile_action, get_profile_picture
+from totalfootball.views import login_action, register_action, homepage_action, logout_action, profile_action, get_profile_picture, select_lineup
 
 urlpatterns = [
     path('', login_action, name='home'),
@@ -26,4 +26,5 @@ urlpatterns = [
     path('logout', logout_action, name="logout"),
     path('profile/<int:user_id>', profile_action, name="profile"),
     path('photo/<int:user_id>/', get_profile_picture, name="photo"),
+    path('select-lineup/', select_lineup, name='select_lineup'),
 ]

@@ -52,13 +52,15 @@ class League(models.Model):
         return self.name
 
 class Team(models.Model):
-    team_id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='team')
     players = models.ManyToManyField(Player, related_name='teams')
+    starting_lineup = models.ManyToManyField(Player, related_name='starting_lineups')
+    captain = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True, related_name='captain_teams')
     total_points = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.username}'s Team"
+
 
 class Match(models.Model):
     match_id = models.AutoField(primary_key=True)

@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 
-from .models import User
+from .models import User, Player, Team
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=20)
@@ -75,3 +75,41 @@ class ProfileForm(forms.ModelForm):
             'team_name': "",
             'profile_image': "Upload image"
         }
+
+class LineupSelectionForm(forms.ModelForm):
+    players = forms.ModelMultipleChoiceField(
+        queryset=Player.objects.none(),  # Start empty
+        widget=forms.CheckboxSelectMultiple(),
+        label="Select Your Starting 11 Players"
+    )
+
+    captain = forms.ModelChoiceField(
+        queryset=Player.objects.none(),  # Start empty
+        label="Select Your Captain",
+        required=True
+    )
+
+    class Meta:
+        model = Team
+        fields = ['players', 'captain']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Set the queryset dynamically
+        player_queryset = Player.objects.order_by('position', 'name')
+        self.fields['players'].queryset = player_queryset
+        self.fields['captain'].queryset = player_queryset
+
+    def clean(self):
+        cleaned_data = super().clean()
+        players = cleaned_data.get('players')
+        captain = cleaned_data.get('captain')
+
+        if players and len(players) != 11:
+            raise forms.ValidationError("You must select exactly 11 players.")
+
+        if captain and captain not in players:
+            raise forms.ValidationError("The captain must be one of the selected players.")
+
+        return cleaned_data

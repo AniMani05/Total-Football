@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Lineup</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <h1>Select Your Starting Lineup and Captain</h1>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="POST" action="{% url 'select_lineup' %}">
+        {% csrf_token %}
+    
+        {% for position, players in players_by_position.items %}
+            <h2>{{ position }}</h2>
+            {% for player in players %}
+                <div>
+                    <input type="checkbox" name="players" value="{{ player.player_id }}">
+                    {{ player.name }} - {{ player.position }} ({{ player.team }})
+                </div>
+            {% empty %}
+                <p>No players available for {{ position }}.</p>
+            {% endfor %}
+        {% endfor %}
+    
+        <h3>Select Your Captain</h3>
+        <select name="captain" required>
+            {% for position, players in players_by_position.items %}
+                {% for player in players %}
+                    <option value="{{ player.player_id }}">
+                        {{ player.name }} - {{ player.position }} ({{ player.team }})
+                    </option>
+                {% endfor %}
+            {% endfor %}
+        </select>
+    
+        <button type="submit">Submit Lineup</button>
+    </form>    
+</body>
+</html>

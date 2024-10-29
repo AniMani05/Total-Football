@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import Http404, HttpResponse
+from django.contrib import messages
+
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import User
+from .models import User, Player, Team
 from django.contrib.auth.decorators import login_required
-from .forms import LoginForm, RegisterForm, ProfileForm
+from .forms import LoginForm, RegisterForm, ProfileForm, LineupSelectionForm
 
 def homepage_action(request):
     return render(request, "homepage.html")
@@ -134,3 +136,52 @@ def get_profile_picture(request, user_id):
         raise Http404("Profile image file not found.")
 
     return HttpResponse(image_data, content_type='image/jpeg')
+
+@login_required
+def select_lineup(request):
+    # Ensure the team exists for the user
+    team, created = Team.objects.get_or_create(user=request.user)
+
+    # Group players by position
+    players_by_position = {
+        'Goalkeepers': Player.objects.filter(position='Goalkeeper').order_by('name'),
+        'Defenders': Player.objects.filter(position='Defender').order_by('name'),
+        'Midfielders': Player.objects.filter(position='Midfielder').order_by('name'),
+        'Forwards': Player.objects.filter(position='Forward').order_by('name'),
+    }
+
+    if request.method == "POST":
+        # Extract player and captain IDs from POST data
+        player_ids = request.POST.getlist('players')
+        captain_id = request.POST.get('captain')
+
+        # Ensure player IDs and captain ID are valid
+        if not player_ids or not captain_id:
+            messages.error(request, "You must select players and a captain.")
+            return redirect('select_lineup')
+
+        players_selected = Player.objects.filter(player_id__in=player_ids)
+        captain = Player.objects.filter(player_id=captain_id).first()
+
+        # Validate the lineup
+        if len(players_selected) != 11:
+            messages.error(request, "You must select exactly 11 players.")
+            return redirect('select_lineup')
+
+        if not captain or captain not in players_selected:
+            messages.error(request, "The captain must be one of the selected players.")
+            return redirect('select_lineup')
+
+        # Save the lineup and captain
+        team.starting_lineup.set(players_selected)
+        team.captain = captain
+        team.save()
+
+        messages.success(request, "Your lineup has been saved successfully!")
+        return redirect('homepage')
+
+    context = {
+        'players_by_position': players_by_position,
+    }
+
+    return render(request, 'select_lineup.html', context)
