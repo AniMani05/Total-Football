@@ -12,20 +12,79 @@
                 <a href="/homepage">Total Football</a>
             </div>
             <div class="bottom" id="id_nav_profile">
-                <a href="{% url 'profile' user.id%}">{{user.first_name}} {{user.last_name}}</a>
+                <a href="{% url 'profile' user.id %}">{{ user.first_name }} {{ user.last_name }}</a>
             </div>
             <div class="bottom" id="id_nav_global_stream">
                 <a href="/select-lineup">Select Lineup</a>
             </div>
             <div class="bottom" id="id_nav_follower_stream">
-                <a href="/followers">Followers</a>
+                <a href="/my-team">My Team</a>
             </div>
             <div class="bottom" id="id_nav_logout">
                 <a href="/logout">Logout</a>
             </div>
         </div>
-        <div>
-            <p>Lets play some footy</p>
+    
+        <h1>Leaderboard</h1>
+    
+        <div style="display: flex; justify-content: space-around;">
+            <!-- Top Players Table -->
+            <div>
+                <h2>Top 10 Players</h2>
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Team</th>
+                            <th>Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in top_players %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ player.name }}</td>
+                                <td>{{ player.team }}</td>
+                                <td>{{ player.points }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">No players found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+    
+            <!-- Top Users Table -->
+            <div>
+                <h2>Top 10 Users</h2>
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Team Name</th>
+                            <th>Total Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_info in top_users %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ user_info.user.username }}</td>
+                                <td>{{ user_info.user.team_name }}</td>
+                                <td>{{ user_info.points }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">No users found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </body>
 </html>

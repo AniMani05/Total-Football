@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import Http404, HttpResponse
 from django.contrib import messages
+from django.db.models import Sum
 
 
 from django.contrib.auth import authenticate, login, logout
@@ -10,34 +11,75 @@ from .models import User, Player, Team
 from django.contrib.auth.decorators import login_required
 from .forms import LoginForm, RegisterForm, ProfileForm, LineupSelectionForm
 
+@login_required
 def homepage_action(request):
-    return render(request, "homepage.html")
+    print("Calling this function")
+    # Query the top 10 players with the most points
+    top_players = Player.objects.order_by('-points')[:10]
+    print(top_players)
+
+    # Calculate the total points for each user
+    users_with_points = []
+    for user in User.objects.all():
+        try:
+            team = user.team
+            total_points = team.starting_lineup.aggregate(Sum('points'))['points__sum'] or 0
+
+            # If the team has a captain, double their points
+            if team.captain:
+                total_points += team.captain.points
+
+            users_with_points.append({
+                'user': user,
+                'points': total_points,
+            })
+        except Team.DoesNotExist:
+            # If the user doesn't have a team, skip them
+            continue
+
+    # Sort users by points in descending order
+    top_users = sorted(users_with_points, key=lambda x: x['points'], reverse=True)[:10]
+
+    context = {
+        'top_players': top_players,
+        'top_users': top_users,
+    }
+
+    return render(request, "homepage.html", context)
 
 def login_action(request):
+    # If the user is already authenticated, redirect to the homepage.
     if request.user.is_authenticated:
-        return render (request, "homepage.html")
+        return redirect('homepage')
 
     context = {}
 
-    # Just display the registration form if this is a GET request.
+    # If the request is a GET, display the login form.
     if request.method == 'GET':
         context['form'] = LoginForm()
         return render(request, 'start.html', context)
 
-    # Creates a bound form from the request POST parameters and makes the 
-    # form available in the request context dictionary.
+    # Creates a bound form with POST data.
     form = LoginForm(request.POST)
     context['form'] = form
 
-    # Validates the form.
+    # Validate the form data.
     if not form.is_valid():
         return render(request, 'start.html', context)
 
-    new_user = authenticate(username=form.cleaned_data['username'],
-                            password=form.cleaned_data['password'])
+    # Authenticate the user.
+    username = form.cleaned_data['username']
+    password = form.cleaned_data['password']
+    new_user = authenticate(username=username, password=password)
 
+    # If authentication fails, return an error message.
+    if new_user is None:
+        messages.error(request, "Invalid username or password.")
+        return render(request, 'start.html', context)
+
+    # Log the user in and redirect to the homepage.
     login(request, new_user)
-    return redirect(reverse('homepage'))
+    return redirect('homepage')
 
 def register_action(request):
     context = {}
@@ -185,3 +227,21 @@ def select_lineup(request):
     }
 
     return render(request, 'select_lineup.html', context)
+
+@login_required
+def my_team_view(request):
+    try:
+        team = Team.objects.get(user=request.user)
+        players = team.starting_lineup.all()
+        captain = team.captain
+    except Team.DoesNotExist:
+        messages.error(request, "You haven't selected a team yet.")
+        return redirect('select_lineup')
+
+    context = {
+        'team': team,
+        'players': players,
+        'captain': captain,
+    }
+
+    return render(request, 'my_team.html', context)
