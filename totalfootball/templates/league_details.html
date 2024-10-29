@@ -1,0 +1,12 @@
+<h1>{{ league.name }}</h1>
+<p>Type: {{ league.type }}</p>
+<p>Code: {{ league.code }}</p>
+
+<h2>Teams in this League</h2>
+<ul>
+    {% for team in league.teams.all %}
+        <li>{{ team.user.username }} - Total Points: {{ team.total_points }}</li>
+    {% empty %}
+        <li>No teams in this league yet.</li>
+    {% endfor %}
+</ul>

@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>CSS Examples</title>
+        <title>Total Football</title>
         <link rel="stylesheet" href="../static/login.css">
     </head>
 
@@ -24,18 +24,14 @@
                 <a href="/logout">Logout</a>
             </div>
         </div>
-    
-        <h1>Leaderboard</h1>
-    
-        <div style="display: flex; justify-content: space-around;">
-            <!-- Top Players Table -->
-            <div>
-                <h2>Top 10 Players</h2>
-                <table border="1">
+
+        <div class="leaderboard-container">
+            <div class="leaderboard">
+                <h2>Top Players</h2>
+                <table>
                     <thead>
                         <tr>
-                            <th>Rank</th>
-                            <th>Player</th>
+                            <th>Player Name</th>
                             <th>Team</th>
                             <th>Points</th>
                         </tr>
@@ -43,43 +39,37 @@
                     <tbody>
                         {% for player in top_players %}
                             <tr>
-                                <td>{{ forloop.counter }}</td>
                                 <td>{{ player.name }}</td>
                                 <td>{{ player.team }}</td>
                                 <td>{{ player.points }}</td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="4">No players found.</td>
+                                <td colspan="3">No players available.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-    
-            <!-- Top Users Table -->
-            <div>
-                <h2>Top 10 Users</h2>
-                <table border="1">
+
+            <div class="leaderboard">
+                <h2>Top Users</h2>
+                <table>
                     <thead>
                         <tr>
-                            <th>Rank</th>
-                            <th>User</th>
-                            <th>Team Name</th>
+                            <th>Username</th>
                             <th>Total Points</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for user_info in top_users %}
+                        {% for team in top_users %}
                             <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td>{{ user_info.user.username }}</td>
-                                <td>{{ user_info.user.team_name }}</td>
-                                <td>{{ user_info.points }}</td>
+                                <td>{{ team.user.username }}</td>
+                                <td>{{ team.calculated_points }}</td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="4">No users found.</td>
+                                <td colspan="2">No users available.</td>
                             </tr>
                         {% endfor %}
                     </tbody>

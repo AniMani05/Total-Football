@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from totalfootball.views import login_action, register_action, homepage_action, logout_action, profile_action, get_profile_picture, select_lineup, my_team_view
+from totalfootball.views import login_action, register_action, homepage_action, logout_action, profile_action, get_profile_picture, select_lineup, my_team_view, create_league, join_league, league_details
 
 urlpatterns = [
     path('', login_action, name='home'),
@@ -28,4 +28,7 @@ urlpatterns = [
     path('photo/<int:user_id>/', get_profile_picture, name="photo"),
     path('select-lineup/', select_lineup, name='select_lineup'),
     path('my-team/', my_team_view, name='my_team'),
+    path('create-league/', create_league, name='create_league'),
+    path('join-league/', join_league, name='join_league'),
+    path('league/<int:league_id>/', league_details, name='league_details'),
 ]

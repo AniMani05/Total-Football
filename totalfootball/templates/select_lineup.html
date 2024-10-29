@@ -38,31 +38,25 @@
 
     <form method="POST" action="{% url 'select_lineup' %}">
         {% csrf_token %}
-    
+        <h3>Select Your Players:</h3>
         {% for position, players in players_by_position.items %}
-            <h2>{{ position }}</h2>
+            <h4>{{ position }}</h4>
             {% for player in players %}
-                <div>
-                    <input type="checkbox" name="players" value="{{ player.player_id }}">
-                    {{ player.name }} - {{ player.position }} ({{ player.team }})
-                </div>
-            {% empty %}
-                <p>No players available for {{ position }}.</p>
+                <input type="checkbox" name="players" value="{{ player.id }}">
+                {{ player.name }} ({{ player.team }})<br>
             {% endfor %}
         {% endfor %}
-    
-        <h3>Select Your Captain</h3>
-        <select name="captain" required>
+
+        <h3>Select Your Captain:</h3>
+        <select name="captain">
             {% for position, players in players_by_position.items %}
                 {% for player in players %}
-                    <option value="{{ player.player_id }}">
-                        {{ player.name }} - {{ player.position }} ({{ player.team }})
-                    </option>
+                    <option value="{{ player.id }}">{{ player.name }}</option>
                 {% endfor %}
             {% endfor %}
         </select>
-    
-        <button type="submit">Submit Lineup</button>
+
+        <button type="submit">Save Lineup</button>
     </form>    
 </body>
 </html>

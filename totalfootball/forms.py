@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 
-from .models import User, Player, Team
+from .models import User, Player, Team, League
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=20)
@@ -113,3 +113,11 @@ class LineupSelectionForm(forms.ModelForm):
             raise forms.ValidationError("The captain must be one of the selected players.")
 
         return cleaned_data
+    
+class CreateLeagueForm(forms.ModelForm):
+    class Meta:
+        model = League
+        fields = ['name', 'creator']
+
+class JoinLeagueForm(forms.Form):
+    code = forms.UUIDField(help_text="Enter the unique code to join a league.")

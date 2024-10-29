@@ -2,51 +2,38 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import Http404, HttpResponse
 from django.contrib import messages
-from django.db.models import Sum
+from django.db.models import Sum, F, Case, When, IntegerField, Value
 
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import User, Player, Team
+from .models import User, Player, Team, League
 from django.contrib.auth.decorators import login_required
-from .forms import LoginForm, RegisterForm, ProfileForm, LineupSelectionForm
+from .forms import LoginForm, RegisterForm, ProfileForm, JoinLeagueForm, CreateLeagueForm
 
-@login_required
 def homepage_action(request):
-    print("Calling this function")
-    # Query the top 10 players with the most points
+    # Get top players ordered by points
     top_players = Player.objects.order_by('-points')[:10]
-    print(top_players)
 
-    # Calculate the total points for each user
-    users_with_points = []
-    for user in User.objects.all():
-        try:
-            team = user.team
-            total_points = team.starting_lineup.aggregate(Sum('points'))['points__sum'] or 0
-
-            # If the team has a captain, double their points
-            if team.captain:
-                total_points += team.captain.points
-
-            users_with_points.append({
-                'user': user,
-                'points': total_points,
-            })
-        except Team.DoesNotExist:
-            # If the user doesn't have a team, skip them
-            continue
-
-    # Sort users by points in descending order
-    top_users = sorted(users_with_points, key=lambda x: x['points'], reverse=True)[:10]
+    # Calculate total points for each team, doubling captain points
+    top_users = (
+        Team.objects.annotate(
+            total_points=Sum(
+                Case(
+                    When(players=F('captain'), then=F('players__points') * 2),
+                    default=F('players__points'),
+                    output_field=IntegerField(),
+                )
+            ) + Value(0, output_field=IntegerField())  # Ensure non-None values
+        ).order_by('-total_points')[:10]
+    )
 
     context = {
         'top_players': top_players,
         'top_users': top_users,
     }
 
-    return render(request, "homepage.html", context)
-
+    return render(request, 'homepage.html', context)
 def login_action(request):
     # If the user is already authenticated, redirect to the homepage.
     if request.user.is_authenticated:
@@ -202,8 +189,11 @@ def select_lineup(request):
             messages.error(request, "You must select players and a captain.")
             return redirect('select_lineup')
 
-        players_selected = Player.objects.filter(player_id__in=player_ids)
-        captain = Player.objects.filter(player_id=captain_id).first()
+        players_selected = Player.objects.filter(id__in=player_ids)
+        captain = Player.objects.filter(id=captain_id).first()
+
+        print(request.POST.getlist('players'))
+        print(request.POST.get('captain'))
 
         # Validate the lineup
         if len(players_selected) != 11:
@@ -245,3 +235,37 @@ def my_team_view(request):
     }
 
     return render(request, 'my_team.html', context)
+
+@login_required
+def create_league(request):
+    if request.method == 'POST':
+        form = CreateLeagueForm(request.POST)
+        if form.is_valid():
+            league = form.save(commit=False)
+            league.creator = request.user
+            league.save()
+            return redirect('league_details', league_id=league.id)
+    else:
+        form = CreateLeagueForm()
+    return render(request, 'create_league.html', {'form': form})
+
+@login_required
+def join_league(request):
+    if request.method == 'POST':
+        form = JoinLeagueForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            try:
+                league = League.objects.get(code=code)
+                team, created = Team.objects.get_or_create(user=request.user, league=league)
+                return redirect('league_details', league_id=league.id)
+            except League.DoesNotExist:
+                form.add_error('code', 'Invalid league code.')
+    else:
+        form = JoinLeagueForm()
+    return render(request, 'join_league.html', {'form': form})
+
+@login_required
+def league_details(request, league_id):
+    league = get_object_or_404(League, id=league_id)
+    return render(request, 'league_details.html', {'league': league})

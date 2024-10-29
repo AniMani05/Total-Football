@@ -1,72 +1,79 @@
+import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Sum
 
-# User Model
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     team_name = models.CharField(max_length=100, blank=True, null=True)
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
-
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='custom_user_set',
-        blank=True,
-        help_text='The groups this user belongs to.',
-        verbose_name='groups',
-    )
-
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='custom_user_permissions',
-        blank=True,
-        help_text='Specific permissions for this user.',
-        verbose_name='user permissions',
-    )
+    leagues = models.ManyToManyField('League', related_name='members', blank=True)
 
     def __str__(self):
         return self.username
 
+
 class Player(models.Model):
-    player_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     team = models.CharField(max_length=100)
-    position = models.CharField(max_length=50)
     league = models.CharField(max_length=100)
+    position = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    points = models.IntegerField()
+    points = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.name} ({self.team})"
 
+
 class League(models.Model):
-    LEAGUE_TYPE_CHOICES = [
-        ('global', 'Global'),
-        ('custom', 'Custom'),
-    ]
-    league_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
-    type = models.CharField(max_length=10, choices=LEAGUE_TYPE_CHOICES)
-    members = models.ManyToManyField(User, related_name='leagues')
+    code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_leagues', 
+                                null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} (Draft)"
+
 
 class Team(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='team')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teams')
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name='teams', 
+                               null=True, blank=True)
     players = models.ManyToManyField(Player, related_name='teams')
-    starting_lineup = models.ManyToManyField(Player, related_name='starting_lineups')
-    captain = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True, related_name='captain_teams')
-    total_points = models.IntegerField(default=0)
+    captain = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True, 
+                                related_name='captain_teams')
+    starting_lineup = models.ManyToManyField(Player, related_name='starting_lineups', blank=True)
+
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'league'], name='unique_user_league')
+        ]
+
+
+    @property
+    def calculated_points(self):
+        # Handle the captain's double points
+        captain_points = self.captain.points * 2 if self.captain else 0
+
+        # Sum points of other players
+        other_points = (
+            self.players.exclude(id=self.captain.id)
+            .aggregate(total=Sum('points'))['total'] or 0
+        )
+
+        return captain_points + other_points
 
     def __str__(self):
-        return f"{self.user.username}'s Team"
+        if self.league:
+            return f"{self.user.username}'s Team in {self.league.name}"
+        return f"{self.user.username}'s Global Team"
 
 
 class Match(models.Model):
-    match_id = models.AutoField(primary_key=True)
     team_1 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_matches')
     team_2 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_matches')
-    score = models.CharField(max_length=20)  # e.g., '2-1'
+    score = models.CharField(max_length=20, blank=True, null=True)
     date = models.DateField()
 
     def __str__(self):
