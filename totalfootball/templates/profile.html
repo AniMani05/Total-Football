@@ -8,7 +8,7 @@
 
     <body>
         <div class="header-box" id="id_header_div">
-            <div class="centered" id="id_site_name">Blog Master</div>
+            <div class="centered" id="id_site_name">Total Football</div>
             <div class="bottom" id="id_nav_profile">
                 <a href="{% url 'profile' user.id%}">{{user.first_name}} {{user.last_name}}</a>
 
@@ -47,8 +47,8 @@
                 {% endif %}
             {% else %}
                 <div id="id_page_name">{{ request.user.first_name }} {{request.user.last_name}} Profile</div>
-                {% if not request.user.profile.picture %}
-                    <img id="id_user_picture" src="../static/Jacquees.jpeg" alt="Profile Picture">
+                {% if not request.user.profile_image %}
+                    <img width="200px" id="id_user_picture" src="../static/Default.jpeg" alt="Profile Picture">
                 {% else %}
                     <img id="id_user_picture" src="{% url 'photo' request.user.id %}" alt="Profile Picture">
                 {% endif %}

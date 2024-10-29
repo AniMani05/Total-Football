@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.http import Http404, HttpResponse
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -108,7 +109,7 @@ def profile_action(request, user_id):
                 request.user.profile_image = form.cleaned_data['profile_image']
             request.user.save()
 
-            return redirect('profile_action', user_id=request.user.id)
+            return redirect('profile', user_id=request.user.id)
         else:
             context['form'] = form
             return render(request, 'profile.html', context)
@@ -118,3 +119,18 @@ def profile_action(request, user_id):
         context['otherUser'] = user
 
     return render(request, "profile.html", context)
+
+@login_required
+def get_profile_picture(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
+    if not user.profile_image:
+        raise Http404("No profile image found for this user.")
+
+    try:
+        with open(user.profile_image.path, 'rb') as f:
+            image_data = f.read()
+    except FileNotFoundError:
+        raise Http404("Profile image file not found.")
+
+    return HttpResponse(image_data, content_type='image/jpeg')

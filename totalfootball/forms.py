@@ -67,8 +67,11 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['team_name', 'profile_image']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['team_name'].widget.attrs.update({'class': 'form-control'})
-        self.fields['profile_image'].widget.attrs.update({'class': 'form-control-file'})
+        widgets = {
+            'team_name': forms.Textarea(attrs={'id':'id_bio_input_text', 'rows':'3'}),
+            'profile_image': forms.FileInput(attrs={'id':'id_profile_picture'})
+        }
+        labels = {
+            'team_name': "",
+            'profile_image': "Upload image"
+        }
