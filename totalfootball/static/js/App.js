@@ -1,9 +1,8 @@
-// static/js/App.js
-/*import React, { useState } from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import PlayerList from './components/PlayerList';
 import Field from './components/Field';
-import './styles.css';
+import '../Players.css';
 
 const App = () => {
   const [selectedPlayers, setSelectedPlayers] = useState({});
@@ -43,17 +42,6 @@ const App = () => {
       <PlayerList players={players} selectPlayer={selectPlayer} />
       <Field selectedPlayers={selectedPlayers} selectPlayer={selectPlayer} />
     </div>
-  );
-};
-
-ReactDOM.render(<App />, document.getElementById('root'));*/
-
-import React from 'react';
-import ReactDOM from 'react-dom';
-
-const App = () => {
-  return (
-    <h1>Hello from React</h1>
   );
 };
 

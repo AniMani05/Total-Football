@@ -15,7 +15,7 @@
   .field {
     width: 500px;
     height: 700px;
-    background: url('/path-to-field-image.jpg') no-repeat center center;
+    background: url('../../images/Field.png') no-repeat center center;
     background-size: cover;
     position: relative;
     border: 2px solid #333;
