@@ -1,0 +1,51 @@
+/* static/js/styles.css */
+.app {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .player-list {
+    width: 200px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    overflow-y: auto;
+    height: 700px;
+  }
+  
+  .field {
+    width: 500px;
+    height: 700px;
+    background: url('/path-to-field-image.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+    border: 2px solid #333;
+  }
+  
+  .position {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .player-box {
+    background-color: #0044cc;
+    color: #fff;
+    padding: 5px;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 12px;
+  }
+  
+  .placeholder {
+    background-color: #f0f0f0;
+    color: #999;
+    padding: 5px;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 12px;
+  }
+  

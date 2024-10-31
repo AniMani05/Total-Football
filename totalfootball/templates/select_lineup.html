@@ -1,10 +1,12 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Your Lineup</title>
+    <title>Total Football</title>
     {% load static %}
+    <link rel="stylesheet" href="../static/Players.css">
     <link rel="stylesheet" href="../static/login.css">
 </head>
 <body>
@@ -13,8 +15,7 @@
             <a href="/homepage">Total Football</a>
         </div>
         <div class="bottom" id="id_nav_profile">
-            <a href="{% url 'profile' user.id%}">{{user.first_name}} {{user.last_name}}</a>
-
+            <a href="{% url 'profile' user.id %}">{{ user.first_name }} {{ user.last_name }}</a>
         </div>
         <div class="bottom" id="id_nav_global_stream">
             <a href="/select-lineup">Select Lineup</a>
@@ -26,37 +27,16 @@
             <a href="/logout">Logout</a>
         </div>
     </div>
+
     <h1>Select Your Starting Lineup and Captain</h1>
-
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-    <form method="POST" action="{% url 'select_lineup' %}">
-        {% csrf_token %}
-        <h3>Select Your Players:</h3>
-        {% for position, players in players_by_position.items %}
-            <h4>{{ position }}</h4>
-            {% for player in players %}
-                <input type="checkbox" name="players" value="{{ player.id }}">
-                {{ player.name }} ({{ player.team }})<br>
-            {% endfor %}
-        {% endfor %}
-
-        <h3>Select Your Captain:</h3>
-        <select name="captain">
-            {% for position, players in players_by_position.items %}
-                {% for player in players %}
-                    <option value="{{ player.id }}">{{ player.name }}</option>
-                {% endfor %}
-            {% endfor %}
-        </select>
-
-        <button type="submit">Save Lineup</button>
-    </form>    
-</body>
+    
+    <!-- This is where the React app will be rendered -->
+    <div id="root"></div>
+    <script src="{% static 'js/App.bundle.js' %}"></script>
+    
+    <!-- Load React and the App bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+    <script type="module" src="/static/js/App.js"></script>
 </html>
+
