@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.contrib import messages
-from django.db.models import Sum, F, Case, When, IntegerField, Value
+from django.db.models import Sum, Case, When, F, IntegerField, Value, Subquery, OuterRef
 
+import json
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -15,18 +16,34 @@ def homepage_action(request):
     # Get top players ordered by points
     top_players = Player.objects.order_by('-points')[:10]
 
-    # Calculate total points for each team, doubling captain points
-    top_users = (
-        Team.objects.annotate(
-            total_points=Sum(
-                Case(
-                    When(players=F('captain'), then=F('players__points') * 2),
-                    default=F('players__points'),
-                    output_field=IntegerField(),
-                )
-            ) + Value(0, output_field=IntegerField())  # Ensure non-None values
-        ).order_by('-total_points')[:10]
-    )
+    # Prepare team points data
+    teams = Team.objects.all()
+    team_points = []
+
+    for team in teams:
+        captain_points = 0
+        non_captain_points = 0
+        
+        # Calculate captain points, doubled if captain exists
+        if team.captain:
+            captain_points = (team.captain.points or 0) * 2  # Default to 0 if points are None
+        
+        # Sum points for non-captain players, defaulting to 0 if None
+        non_captain_points = team.players.exclude(id=team.captain_id).aggregate(
+            total=Sum('points')
+        )['total'] or 0
+
+        # Calculate total points
+        total_points = captain_points + non_captain_points
+
+        # Add team data to list
+        team_points.append({
+            'username': team.user.username,
+            'total_points': total_points,
+        })
+
+    # Sort teams by total_points in descending order and select top 10
+    top_users = sorted(team_points, key=lambda x: x['total_points'], reverse=True)[:10]
 
     context = {
         'top_players': top_players,
@@ -34,6 +51,7 @@ def homepage_action(request):
     }
 
     return render(request, 'homepage.html', context)
+
 def login_action(request):
     # If the user is already authenticated, redirect to the homepage.
     if request.user.is_authenticated:
@@ -179,43 +197,59 @@ def select_lineup(request):
         'Forwards': Player.objects.filter(position='Forward').order_by('name'),
     }
 
+    # Check if the request is JSON or form-encoded
     if request.method == "POST":
-        # Extract player and captain IDs from POST data
-        player_ids = request.POST.getlist('players')
-        captain_id = request.POST.get('captain')
+        if request.content_type == "application/json":
+            # Parse JSON data
+            data = json.loads(request.body)
+            player_ids = data.get('players')
+            captain_id = data.get('captain_id')
+        else:
+            # Handle form-encoded data as before
+            player_ids = request.POST.getlist('players')
+            captain_id = request.POST.get('captain')
 
-        # Ensure player IDs and captain ID are valid
+        # Validate the provided player IDs and captain ID
         if not player_ids or not captain_id:
-            messages.error(request, "You must select players and a captain.")
-            return redirect('select_lineup')
+            if request.content_type == "application/json":
+                return JsonResponse({'error': "You must select players and a captain."}, status=400)
+            else:
+                messages.error(request, "You must select players and a captain.")
+                return redirect('select_lineup')
 
         players_selected = Player.objects.filter(id__in=player_ids)
         captain = Player.objects.filter(id=captain_id).first()
 
-        print(request.POST.getlist('players'))
-        print(request.POST.get('captain'))
-
         # Validate the lineup
         if len(players_selected) != 11:
-            messages.error(request, "You must select exactly 11 players.")
-            return redirect('select_lineup')
+            if request.content_type == "application/json":
+                print(players_selected)
+                return JsonResponse({'error': "You must select exactly 11 players."}, status=400)
+            else:
+                messages.error(request, "You must select exactly 11 players.")
+                return redirect('select_lineup')
 
         if not captain or captain not in players_selected:
-            messages.error(request, "The captain must be one of the selected players.")
-            return redirect('select_lineup')
+            if request.content_type == "application/json":
+                return JsonResponse({'error': "The captain must be one of the selected players."}, status=400)
+            else:
+                messages.error(request, "The captain must be one of the selected players.")
+                return redirect('select_lineup')
 
         # Save the lineup and captain
         team.starting_lineup.set(players_selected)
         team.captain = captain
         team.save()
 
-        messages.success(request, "Your lineup has been saved successfully!")
-        return redirect('homepage')
+        if request.content_type == "application/json":
+            return JsonResponse({'message': "Your lineup has been saved successfully!"})
+        else:
+            messages.success(request, "Your lineup has been saved successfully!")
+            return redirect('homepage')
 
     context = {
         'players_by_position': players_by_position,
     }
-
     return render(request, 'select_lineup.html', context)
 
 @login_required
