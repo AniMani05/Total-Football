@@ -5,23 +5,23 @@
         <title>CSS Examples</title>
         <link rel="stylesheet" href="../static/login.css">
     </head>
-
     <body>
-        <div class="header-box" id="id_header_div">
-            <div class="centered" id="id_site_name">Total Football</div>
-            <div class="bottom" id="id_register_link">
-                <a href="{% url 'register' %}">Register</a>
-            </div>
-        </div>
+        <h1 class="bold">Welcome to Total Football!</h1>
         <div class="loginform">
             <div id="id_page_name">Login</div>
             <form method="post" action="{% url 'login' %}">
-                <table>
-                    {{form.as_table}}
-                </table>
                 {% csrf_token %}
-                <button type="submit" id="id_login_button">Submit</button>
+                {{ form.as_p }}
+                <div class="button-container">
+                    <button type="button" id="id_register_button">REGISTER</button>
+                    <button type="submit" id="id_login_button">LOGIN</button>
+                </div>
             </form>
         </div>
+        <script>
+            document.getElementById("id_register_button").addEventListener("click", function() {
+                window.location.href = "{% url 'register' %}"; // Redirects to the registration page
+            });
+        </script>
     </body>
 </html>

@@ -13,21 +13,26 @@ body {
 }
 
 input[type="text"],
-input[type="email"],
-input[type="password"],
-textarea {
-    padding: 0; /* Reset padding */
-    margin: 0;  /* Reset margin */
-    border: 1px solid #ccc; /* Ensure a uniform border */
-    box-sizing: border-box; /* Include padding and border in height */
-    height: 2vw; /* Uniform height */
-    width: 20vw;
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px; /* Adjust the value to control the roundness */
+    box-sizing: border-box;
+    font-size: 1rem;
 }
 
 button {
-    height: 2vw; /* Same height as input fields */
-    box-sizing: border-box;
-    font-size: 18px; /* Ensure button text is the same size */
+    display: flex;
+    align-items: center;    /* Vertically centers the text */
+    justify-content: center; /* Horizontally centers the text */
+    padding: 10px;
+    width: 45%;
+    font-size: 1rem;
+    border: 1px solid #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #000;
     background-color: #00CFFF;
 }
 
@@ -76,7 +81,7 @@ button {
 
 #id_page_name {
     text-align: center;
-    font-size:3vw;
+    font-size:5vw;
 }
 
 .input-container {
@@ -187,4 +192,98 @@ tr:hover {
 
 #id_site_name {
     font-size: 40px;
+}
+
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    background-color: #F2F2F2; /* Light grey background */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Title styling */
+h1.bold {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #000;
+    font-weight: bold;
+}
+
+/* Login form container styling */
+.loginform {
+    background-color: #3D52D5; /* Blue background */
+    padding: 30px;
+    border-radius: 10px;
+    width: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Soft shadow */
+    color: #fff; /* White text color */
+    text-align: center;
+}
+
+/* Login title styling */
+#id_page_name {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+/* Table and input styling */
+table {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+table input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
+
+/* Button styling */
+.button-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+button {
+    padding: 10px;
+    width: 45%;
+    font-size: 1rem;
+    border: 1px solid #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #fff;
+    background-color: transparent;
+    text-align: center;
+}
+
+button:hover {
+    background-color: #3b4580; /* Slightly darker blue on hover */
+}
+
+form p {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+#id_register_button {
+    padding: 10px;
+    width: 45%;
+    font-size: 1rem;
+    border: 1px solid #030303;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #030303;
+    background-color: #B4C5E4; /* Green background color */
+}
+
+#id_register_button:hover {
+    background-color: #7390C4; /* Darker green on hover */
 }
