@@ -12,6 +12,7 @@ body {
     padding-left: 10px;
 }
 
+input[type="email"],
 input[type="text"],
 input[type="password"] {
     width: 100%;
@@ -76,7 +77,6 @@ button {
     justify-content: center;
     padding-left: 10px;
     flex-direction: column;
-    margin-top: 5px;
 }
 
 #id_page_name {
@@ -85,7 +85,7 @@ button {
 }
 
 .input-container {
-    margin-top: 5px;
+    margin-top: 2px;
     display: flex;
 }
 
@@ -130,7 +130,7 @@ input {
 
 .inner_post {
     display: block;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
     font-size: 18px;
 }
 
@@ -252,6 +252,12 @@ table input {
     justify-content: space-between;
 }
 
+.submit-button-container {
+    display: flex;
+    justify-content: center; /* Center-aligns the button horizontally */
+    margin-top: 15px;
+}
+
 button {
     padding: 10px;
     width: 45%;
@@ -273,6 +279,10 @@ form p {
     text-align: left;
 }
 
+#id_submit_button {
+    align-self: center;
+}
+
 #id_register_button {
     padding: 10px;
     width: 45%;
@@ -286,4 +296,24 @@ form p {
 
 #id_register_button:hover {
     background-color: #7390C4; /* Darker green on hover */
+}
+
+.account-text {
+    text-align: center; /* Center-aligns the whole text block */
+    font-size: 0.9rem;
+    color: #d3d3d3;
+}
+
+.account-text span {
+    margin-right: 5px; /* Adds space between the text and the link */
+}
+
+.account-text a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.account-text a:hover {
+    text-decoration: underline;
 }
