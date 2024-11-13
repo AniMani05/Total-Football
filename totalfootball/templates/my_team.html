@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Team</title>
     {% load static %}
-    <link rel="stylesheet" href="../static/login.css">
+    <link rel="stylesheet" href="../static/header.css">
+    <link rel="stylesheet" href="../static/my_team.css">
 </head>
 <body>
     <div class="header-box" id="id_header_div">
         <div class="centered" id="id_site_name">
-            <a href="/homepage">Total Football</a>
+            <a href="/homepage">TOTAL FOOTBALL</a>
         </div>
         <div class="bottom" id="id_nav_profile">
             <a href="{% url 'profile' user.id %}">{{ user.first_name }} {{ user.last_name }}</a>
@@ -31,25 +32,27 @@
             <a href="/logout">Logout</a>
         </div>
     </div>
-    <h1>{{ request.user.username }}'s Team</h1>
+    <div class="team-containter">
+        <h1>{{ request.user.username }}'s Team</h1>
 
-    <h2>Captain</h2>
-    {% if captain %}
-        <p>{{ captain.name }} - {{ captain.position }} ({{ captain.team }})</p>
-    {% else %}
-        <p>No captain selected.</p>
-    {% endif %}
+        <h2>Captain</h2>
+        {% if captain %}
+            <p>{{ captain.name }} - {{ captain.position }} ({{ captain.team }})</p>
+        {% else %}
+            <p>No captain selected.</p>
+        {% endif %}
 
-    <h2>Starting Lineup</h2>
-    <ul>
-        {% for player in players %}
-            <li>{{ player.name }} - {{ player.position }} ({{ player.team }})</li>
-        {% empty %}
-            <p>No players in your lineup.</p>
-        {% endfor %}
-    </ul>
+        <h2>Starting Lineup</h2>
+        <ul>
+            {% for player in players %}
+                <li>{{ player.name }} - {{ player.position }} ({{ player.team }})</li>
+            {% empty %}
+                <p>No players in your lineup.</p>
+            {% endfor %}
+        </ul>
 
-    <a href="{% url 'select_lineup' %}">Edit Lineup</a>
-    <a href="{% url 'homepage' %}">Back to Home</a>
+        <a href="{% url 'select_lineup' %}" class="mybutton">Edit Lineup</a>
+        <a href="{% url 'homepage' %}" class="mybutton">Back to Home</a>
+    </div>
 </body>
 </html>

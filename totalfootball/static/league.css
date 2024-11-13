@@ -1,0 +1,66 @@
+/* General body styling */
+.league-containter {
+    font-family: Arial, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Page title styling */
+h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Form container styling */
+form {
+    background-color: #ffffff;
+    width: 80%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+/* Form input styling */
+form p {
+    margin-bottom: 15px;
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="email"],
+form select,
+form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+/* Form button styling */
+form button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #4a90e2;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+form button:hover {
+    background-color: #357ABD;
+}

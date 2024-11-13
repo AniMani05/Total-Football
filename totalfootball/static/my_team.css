@@ -1,0 +1,65 @@
+/* Body Styling */
+.team-containter {
+    font-family: Arial, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Page Title */
+h1 {
+    font-size: 2rem;
+    margin-top: 20px;
+    color: #333;
+}
+
+/* Section Titles */
+h2 {
+    font-size: 1.5rem;
+    margin-top: 30px;
+    color: #4a90e2;
+}
+
+/* Captain Section */
+p {
+    font-size: 1.1rem;
+    margin: 10px 0;
+    color: #333;
+    font-weight: bold;
+}
+
+/* Starting Lineup List */
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+ul li {
+    font-size: 1.1rem;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Links for Edit Lineup and Back to Home */
+.mybutton {
+    display: inline-block;
+    margin: 15px 10px;
+    padding: 10px 20px;
+    background-color: #4a90e2;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.mybutton:hover {
+    background-color: #357ABD;
+}
