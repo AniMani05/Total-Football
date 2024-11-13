@@ -6,8 +6,8 @@ from django.contrib.auth import authenticate
 from .models import User, Player, Team, League
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=20)
-    password = forms.CharField(max_length=200, widget=forms.PasswordInput())
+    username = forms.CharField(label='', max_length=20, widget=forms.TextInput(attrs={'placeholder': 'username'}))
+    password = forms.CharField(label='', max_length=200, widget=forms.PasswordInput(attrs={'placeholder': 'password'}))
 
     # Customizes form validation for properties that apply to more
     # than one field.  Overrides the forms.Form.clean function.
@@ -27,12 +27,12 @@ class LoginForm(forms.Form):
         return cleaned_data
 
 class RegisterForm(forms.Form):
-    username      = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'id': 'id_username'}))
-    password1     = forms.CharField(max_length=20, label='Password', widget=forms.PasswordInput(attrs={'id': 'id_password'}))
-    password2     = forms.CharField(max_length=20, label='Confirm Password', widget=forms.PasswordInput(attrs={'id': 'id_confirm_password'}))
-    email         = forms.CharField(max_length=40, widget = forms.EmailInput(attrs={'id': 'id_email'}))
-    first_name     = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'id': 'id_first_name'}))
-    last_name      = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'id': 'id_last_name'}))
+    username      = forms.CharField(label='', max_length=20, widget=forms.TextInput(attrs={'id': 'id_username', 'placeholder': 'username'}))
+    password1     = forms.CharField(label='', max_length=20, widget=forms.PasswordInput(attrs={'id': 'id_password', 'placeholder': 'password'}))
+    password2     = forms.CharField(label='', max_length=20, widget=forms.PasswordInput(attrs={'id': 'id_confirm_password', 'placeholder': 'confirm password'}))
+    email         = forms.CharField(label='', max_length=40, widget = forms.EmailInput(attrs={'id': 'id_email', 'placeholder': 'email'}))
+    first_name     = forms.CharField(label='', max_length=20, widget=forms.TextInput(attrs={'id': 'id_first_name', 'placeholder': 'first name'}))
+    last_name      = forms.CharField(label='', max_length=200, widget=forms.TextInput(attrs={'id': 'id_last_name', 'placeholder': 'last name'}))
 
 
     # Customizes form validation for properties that apply to more
@@ -117,7 +117,7 @@ class LineupSelectionForm(forms.ModelForm):
 class CreateLeagueForm(forms.ModelForm):
     class Meta:
         model = League
-        fields = ['name', 'creator']
+        fields = ['name']
 
 class JoinLeagueForm(forms.Form):
     code = forms.UUIDField(help_text="Enter the unique code to join a league.")

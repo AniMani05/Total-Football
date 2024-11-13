@@ -1,0 +1,95 @@
+/* General body styling */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0; /* Light background */
+}
+
+/* Header/NavBar styling */
+.header-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #b0c4de; /* Light blue background */
+    padding: 10px 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
+}
+
+#id_site_name a {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000;
+    text-decoration: none;
+}
+
+#id_site_name {
+    flex: 1; /* Ensures "Total Football" aligns to the left */
+}
+
+/* Navbar links styling */
+.bottom {
+    margin: 0 10px;
+}
+
+.bottom a {
+    color: #000;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.bottom a:hover {
+    text-decoration: underline; /* Adds underline on hover */
+}
+
+/* Special styling for the Logout button */
+#id_nav_logout a {
+    padding: 5px 10px;
+    border: 1px solid #000;
+    border-radius: 5px;
+}
+
+#id_nav_logout a:hover {
+    background-color: #d3d3d3; /* Light grey background on hover */
+}
+
+/* Leaderboard container styling */
+.leaderboard-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    gap: 20px;
+}
+
+.leaderboard {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for leaderboard boxes */
+    width: 300px;
+}
+
+.leaderboard h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: #f1f1f1; /* Row highlight on hover */
+}
