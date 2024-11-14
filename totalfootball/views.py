@@ -8,7 +8,7 @@ import json
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import User, Player, Team, League
+from .models import User, Player, Team, League, LeagueTeam
 from django.contrib.auth.decorators import login_required
 from .forms import LoginForm, RegisterForm, ProfileForm, JoinLeagueForm, CreateLeagueForm
 
@@ -278,6 +278,13 @@ def create_league(request):
             league = form.save(commit=False)
             league.creator = request.user
             league.save()
+            
+            # Add the creator to the league's members
+            league.members.add(request.user)
+            
+            # Create a LeagueTeam for the creator in this new league
+            LeagueTeam.objects.create(user=request.user, league=league)
+            
             return redirect('league_details', league_id=league.id)
     else:
         form = CreateLeagueForm()
@@ -291,8 +298,17 @@ def join_league(request):
             code = form.cleaned_data['code']
             try:
                 league = League.objects.get(code=code)
-                team, created = Team.objects.get_or_create(user=request.user, league=league)
+                
+                # Add the user to the league's members if not already a member
+                if request.user not in league.members.all():
+                    league.members.add(request.user)
+                
+                # Check if the user already has a team in this league
+                league_team, created = LeagueTeam.objects.get_or_create(user=request.user, league=league)
+                
+                # Redirect to the league details page
                 return redirect('league_details', league_id=league.id)
+                
             except League.DoesNotExist:
                 form.add_error('code', 'Invalid league code.')
     else:
@@ -302,4 +318,15 @@ def join_league(request):
 @login_required
 def league_details(request, league_id):
     league = get_object_or_404(League, id=league_id)
-    return render(request, 'league_details.html', {'league': league})
+    
+    league_teams = league.league_teams.all()
+    
+    teams_with_players = league_teams.filter(players__isnull=False).distinct()
+
+    show_members_for_draft = not teams_with_players.exists()
+    
+    return render(request, 'league_details.html', {
+        'league': league,
+        'league_teams': league_teams,
+        'show_members_for_draft': show_members_for_draft,
+    })

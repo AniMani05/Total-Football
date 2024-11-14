@@ -28,8 +28,7 @@ class Player(models.Model):
 class League(models.Model):
     name = models.CharField(max_length=100)
     code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_leagues', 
-                                null=True, blank=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_leagues', null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} (Draft)"
@@ -68,7 +67,30 @@ class Team(models.Model):
         if self.league:
             return f"{self.user.username}'s Team in {self.league.name}"
         return f"{self.user.username}'s Global Team"
+    
+class LeagueTeam(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='league_teams')
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name='league_teams')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    players = models.ManyToManyField(Player, related_name='league_teams')
+    captain = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True, related_name='league_team_captain')
+    starting_lineup = models.ManyToManyField(Player, related_name='league_team_starting_lineup', blank=True)
 
+    @property
+    def calculated_points(self):
+        # Handle the captain's double points
+        captain_points = self.captain.points * 2 if self.captain else 0
+
+        # Sum points of other players
+        other_points = (
+            self.players.exclude(id=self.captain.id)
+            .aggregate(total=Sum('points'))['total'] or 0
+        )
+
+        return captain_points + other_points
+
+    def __str__(self):
+        return f"{self.user.username}'s Team in {self.league.name}"
 
 class Match(models.Model):
     team_1 = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_matches')

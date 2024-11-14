@@ -1,12 +1,71 @@
-<h1>{{ league.name }}</h1>
-<p>Type: {{ league.type }}</p>
-<p>Code: {{ league.code }}</p>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Total Football</title>
+        <link rel="stylesheet" href="../../static/header.css">
 
-<h2>Teams in this League</h2>
-<ul>
-    {% for team in league.teams.all %}
-        <li>{{ team.user.username }} - Total Points: {{ team.total_points }}</li>
-    {% empty %}
-        <li>No teams in this league yet.</li>
-    {% endfor %}
-</ul>
+    </head>
+
+    <body>
+        <div class="header-box" id="id_header_div">
+            <div class="centered" id="id_site_name">
+                <a href="/homepage">TOTAL FOOTBALL</a>
+            </div>
+            <div class="bottom" id="id_nav_profile">
+                <a href="{% url 'profile' user.id %}">{{ user.first_name }} {{ user.last_name }}</a>
+            </div>
+            <div class="bottom" id="id_nav_global_stream">
+                <a href="/select-lineup">Select Lineup</a>
+            </div>
+            <div class="bottom" id="id_nav_follower_stream">
+                <a href="/my-team">My Team</a>
+            </div>
+            <div class="bottom" id="id_nav_follower_stream">
+                <a href="/create-league">Create League</a>
+            </div>
+            <div class="bottom" id="id_nav_follower_stream">
+                <a href="/join-league">Join League</a>
+            </div>
+            <div class="bottom dropdown" id="id_nav_view_leagues">
+                <span>View Leagues ▼</span>
+                <div class="dropdown-content">
+                    {% for league in user.leagues.all %}
+                        <a href="{% url 'league_details' league.id %}">{{ league.name }}</a>
+                    {% empty %}
+                        <p>No leagues joined.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="bottom" id="id_nav_logout">
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+
+        <div>
+            <h1>{{ league.name }}</h1>
+            <p>Code: {{ league.code }}</p>
+
+            {% if show_members_for_draft %}
+                <h2>League Members (Draft Needed)</h2>
+                <ul>
+                    {% for member in league.members.all %}
+                        <li>{{ member.username }}</li>
+                    {% empty %}
+                        <li>No members in this league yet.</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <h2>Teams in this League</h2>
+                <ul>
+                    {% for team in league.league_teams.all %}
+                        <li>{{ team.user.username }} - Total Points: {{ team.calculated_points }}</li>
+                    {% empty %}
+                        <li>No teams in this league yet.</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </body>
+</html>
+

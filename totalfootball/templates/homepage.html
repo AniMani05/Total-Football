@@ -28,6 +28,16 @@
             <div class="bottom" id="id_nav_follower_stream">
                 <a href="/join-league">Join League</a>
             </div>
+            <div class="bottom dropdown" id="id_nav_view_leagues">
+                <span>View Leagues ▼</span>
+                <div class="dropdown-content">
+                    {% for league in user.leagues.all %}
+                        <a href="{% url 'league_details' league.id %}">{{ league.name }}</a>
+                    {% empty %}
+                        <p>No leagues joined.</p>
+                    {% endfor %}
+                </div>
+            </div>
             <div class="bottom" id="id_nav_logout">
                 <a href="/logout">Logout</a>
             </div>
