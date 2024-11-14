@@ -18,15 +18,15 @@ input[type="password"] {
     width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 5px; /* Adjust the value to control the roundness */
+    border-radius: 5px;
     box-sizing: border-box;
     font-size: 1rem;
 }
 
 button {
     display: flex;
-    align-items: center;    /* Vertically centers the text */
-    justify-content: center; /* Horizontally centers the text */
+    align-items: center;
+    justify-content: center;
     padding: 10px;
     width: 45%;
     font-size: 1rem;
@@ -196,7 +196,7 @@ tr:hover {
 
 body {
     font-family: Helvetica, Arial, sans-serif;
-    background-color: #F2F2F2; /* Light grey background */
+    background-color: #F2F2F2;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -206,7 +206,6 @@ body {
     font-family: Arial, sans-serif;
 }
 
-/* Title styling */
 h1.bold {
     font-size: 2.5rem;
     margin-bottom: 20px;
@@ -214,24 +213,21 @@ h1.bold {
     font-weight: bold;
 }
 
-/* Login form container styling */
 .loginform {
-    background-color: #3D52D5; /* Blue background */
+    background-color: #3D52D5;
     padding: 30px;
     border-radius: 10px;
     width: 300px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Soft shadow */
-    color: #fff; /* White text color */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: #fff;
     text-align: center;
 }
 
-/* Login title styling */
 #id_page_name {
     font-size: 1.5rem;
     margin-bottom: 20px;
 }
 
-/* Table and input styling */
 table {
     width: 100%;
     margin-bottom: 15px;
@@ -246,7 +242,6 @@ table input {
     font-size: 1rem;
 }
 
-/* Button styling */
 .button-container {
     display: flex;
     justify-content: space-between;
@@ -254,7 +249,7 @@ table input {
 
 .submit-button-container {
     display: flex;
-    justify-content: center; /* Center-aligns the button horizontally */
+    justify-content: center;
     margin-top: 15px;
 }
 
@@ -271,7 +266,7 @@ button {
 }
 
 button:hover {
-    background-color: #3b4580; /* Slightly darker blue on hover */
+    background-color: #3b4580;
 }
 
 form p {
@@ -291,21 +286,21 @@ form p {
     border-radius: 5px;
     cursor: pointer;
     color: #030303;
-    background-color: #B4C5E4; /* Green background color */
+    background-color: #B4C5E4;
 }
 
 #id_register_button:hover {
-    background-color: #7390C4; /* Darker green on hover */
+    background-color: #7390C4;
 }
 
 .account-text {
-    text-align: center; /* Center-aligns the whole text block */
+    text-align: center;
     font-size: 0.9rem;
     color: #d3d3d3;
 }
 
 .account-text span {
-    margin-right: 5px; /* Adds space between the text and the link */
+    margin-right: 5px;
 }
 
 .account-text a {

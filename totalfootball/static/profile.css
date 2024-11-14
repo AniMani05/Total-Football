@@ -3,10 +3,9 @@
     justify-content: center;
     align-items: center;
     padding: 20px;
-    box-sizing: border-box; /* Ensure padding doesn't affect centering */
+    box-sizing: border-box;
 }
 
-/* Profile container styling */
 .loginform {
     background-color: #ffffff;
     width: 80%;
@@ -18,7 +17,6 @@
     text-align: center;
 }
 
-/* Profile heading styling */
 #id_page_name {
     font-size: 1.8rem;
     font-weight: bold;
@@ -26,7 +24,6 @@
     margin-bottom: 15px;
 }
 
-/* Profile picture styling */
 #id_user_picture {
     width: 150px;
     height: 150px;
@@ -36,7 +33,6 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* User bio styling */
 #id_user_bio {
     font-size: 1rem;
     color: #666;
@@ -45,7 +41,6 @@
     line-height: 1.5;
 }
 
-/* Follow/Unfollow and Submit buttons */
 button {
     font-size: 1rem;
     color: #fff;
@@ -62,16 +57,6 @@ button:hover {
     background-color: #357ABD;
 }
 
-/* Different color for Unfollow button */
-#id_unfollow {
-    background-color: #ff5c5c;
-}
-
-#id_unfollow:hover {
-    background-color: #e04e4e;
-}
-
-/* Profile form table styling */
 form table {
     width: 100%;
     margin-top: 15px;
@@ -103,7 +88,6 @@ form table input[type="file"] {
     background-color: #357ABD;
 }
 
-/* Link styling inside the profile */
 .loginform a {
     color: #4a90e2;
     text-decoration: none;

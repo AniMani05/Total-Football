@@ -1,4 +1,3 @@
-/* General body styling */
 .league-containter {
     font-family: Arial, sans-serif;
     background-color: #f5f7fa;
@@ -8,14 +7,12 @@
     text-align: center;
 }
 
-/* Page title styling */
 h1 {
     font-size: 2rem;
     color: #333;
     margin-bottom: 20px;
 }
 
-/* Form container styling */
 form {
     background-color: #ffffff;
     width: 80%;
@@ -27,7 +24,6 @@ form {
     text-align: left;
 }
 
-/* Form input styling */
 form p {
     margin-bottom: 15px;
 }
@@ -45,7 +41,6 @@ form textarea {
     font-size: 1rem;
 }
 
-/* Form button styling */
 form button {
     display: block;
     width: 100%;

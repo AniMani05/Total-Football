@@ -48,13 +48,11 @@ body {
     background-color: #d3d3d3;
 }
 
-/* Dropdown styling */
 .dropdown {
     position: relative;
     display: inline-block;
 }
 
-/* Dropdown content */
 .dropdown-content {
     display: none;
     position: absolute;
@@ -66,7 +64,6 @@ body {
     border-radius: 5px;
 }
 
-/* Dropdown items */
 .dropdown-content a {
     color: #333;
     padding: 8px 16px;
@@ -78,7 +75,6 @@ body {
     background-color: #f1f1f1;
 }
 
-/* Show dropdown content on hover */
 .dropdown:hover .dropdown-content {
     display: block;
 }
