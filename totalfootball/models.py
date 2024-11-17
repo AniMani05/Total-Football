@@ -13,13 +13,31 @@ class User(AbstractUser):
         return self.username
 
 
+# class Player(models.Model):
+#     name = models.CharField(max_length=100)
+#     team = models.CharField(max_length=100)
+#     league = models.CharField(max_length=100)
+#     position = models.CharField(max_length=50)
+#     price = models.DecimalField(max_digits=10, decimal_places=2)
+#     points = models.IntegerField(default=0)
+
+#     def __str__(self):
+#         return f"{self.name} ({self.team})"
+    
 class Player(models.Model):
+    # Player Information
     name = models.CharField(max_length=100)
     team = models.CharField(max_length=100)
     league = models.CharField(max_length=100)
     position = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     points = models.IntegerField(default=0)
+    past_points = models.IntegerField(default=0)  # Historical points
+
+    # API-Football Specific Fields
+    api_football_id = models.IntegerField(unique=True, null=True, blank=True, help_text="ID from API-Football")
+    team_api_id = models.IntegerField(null=True, blank=True, help_text="Team ID from API-Football")
+    league_api_id = models.IntegerField(null=True, blank=True, help_text="League ID from API-Football")
 
     def __str__(self):
         return f"{self.name} ({self.team})"
