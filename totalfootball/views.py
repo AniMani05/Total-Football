@@ -29,12 +29,14 @@ def fetch_past_player_stats(player_id, season):
     url = f"{API_URL}/players"
     params = {
         "id": player_id,
-        "season": "2023",  # Specify the past season (e.g., "2022")
+        "season": season,  # Specify the past season (e.g., "2022")
     }
     response = requests.get(url, headers=HEADERS, params=params)
-    
+
     if response.status_code == 200:
         data = response.json()
+        # Debug: Print the raw API response
+        print(f"API Response for Player {player_id} (Season {season}): {data}")
         if data['response']:
             # Extract relevant stats
             stats = data['response'][0]['statistics'][0]
