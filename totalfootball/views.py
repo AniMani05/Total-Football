@@ -3,6 +3,8 @@ from django.urls import reverse
 from django.http import Http404, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.db.models import Sum, Case, When, F, IntegerField, Value, Subquery, OuterRef
+from django.utils.timezone import now
+from datetime import timedelta
 
 import json
 
@@ -180,6 +182,21 @@ def get_profile_picture(request, user_id):
     return HttpResponse(image_data, content_type='image/jpeg')
 
 @login_required
+def update_player_stats(request, player_id):
+    if request.method == "POST":
+        try:
+            # Fetch stats from the external API
+            result = fetch_player_stats(player_id) 
+
+            if result["success"]:
+                return JsonResponse({"success": True, "message": f"Player {player_id} updated successfully."})
+            else:
+                return JsonResponse({"success": False, "error": result["error"]}, status=400)
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    return JsonResponse({"error": "Invalid request method."}, status=405)
+
+@login_required
 def draft_view(request, league_id):
     league = get_object_or_404(League, id=league_id)
 
@@ -262,17 +279,73 @@ def draft_view(request, league_id):
 
     return render(request, 'draft.html', context)
 
-@login_required
-def finalize_draft(request, league_id):
-    league = get_object_or_404(League, id=league_id)
-    if league.current_pick > league.total_picks:
-        league.draft_started = False
-        league.save()
-        return JsonResponse({'success': 'Draft finalized successfully!'})
-    else:
-        return JsonResponse({'error': 'Draft not complete yet.'}, status=400)
+def calculate_points(goals, assists, saves, tackles, duels, position):
+    # player = Player.objects.get(api_football_id=player_id)
+    new_score = 0
+    # position = player.position
+    if position == "Goalkeeper":
+        new_score += saves*0.5 + tackles*0.25 + duels*0.25
+    elif position == "Defender":
+        new_score += saves*0.15 + duels*0.3 + tackles*0.25 + goals*0.3
+    elif position == "Midfielder":
+        new_score += assists*0.3 + goals*0.3 + tackles*0.2 + duels*0.2
+    elif position == "Attacker":
+        new_score += assists*0.25 + goals*0.5 + tackles*0.15 + duels*0.1
+    
+    return new_score/2
 
-from django.db.models import Q
+def fetch_player_stats(player_id):
+    """
+    Fetch live stats for a player by their API ID and update the database if 6 hours have passed since the last update.
+    """
+    try:
+        player = Player.objects.get(api_football_id=player_id)
+
+        # Check if 6 hours have passed since the last update
+        if player.last_updated and now() - player.last_updated < timedelta(hours=6):
+            return {"success": False, "message": "Stats were recently updated. Try again later."}
+
+        url = f"{API_URL}/players"
+        params = {"id": player_id, "season": "2024"}  # Update the season dynamically as needed
+        response = requests.get(url, headers=HEADERS, params=params)
+
+        if response.status_code == 200:
+            data = response.json()
+            stats = data['response'][0]['statistics'][0]
+
+            # Calculate the difference in stats
+            new_goals = stats["goals"]["total"] or 0 - player.last_goals
+            new_assists = stats["goals"]["assists"] or 0 - player.last_assists
+            new_tackles = stats["tackles"]["total"] or 0 - player.last_tackles
+            new_saves = stats["goals"]["saves"] or 0 - player.last_saves
+            new_duels = stats["duels"]["won"] or 0 - player.last_duels
+
+            # Update stats only with the differences
+            player.new_goals += max(0, new_goals)
+            player.new_assists += max(0, new_assists)
+            player.new_tackles += max(0, new_tackles)
+            player.new_saves += max(0, new_saves)
+            player.new_duels += max(0, new_duels)
+            player.points += calculate_points(player.new_goals, player.new_assists, player.new_saves, player.new_tackles, player.new_duels, player.position)
+
+            # Update the last known stats
+            player.goals = stats["goals"]["total"] or 0
+            player.assists = stats["goals"]["assists"] or 0
+            player.tackles = stats["tackles"]["total"] or 0
+            player.saves = stats["goals"]["saves"] or 0
+            player.duels = stats["duels"]["won"] or 0
+            player.past_points = calculate_points(player.goals, player.assists, player.saves, player.tackles, player.duels, player.position)
+
+            # Update the last_updated timestamp
+            player.last_updated = now()
+            player.save()
+
+            return {"success": True, "player": player.name, "updated_stats": stats}
+        else:
+            return {"success": False, "error": "API request failed."}
+    except (KeyError, IndexError, Player.DoesNotExist):
+        return {"success": False, "error": "Failed to update player stats."}
+
 
 @login_required
 def select_lineup(request):
@@ -348,34 +421,11 @@ def fetch_past_player_points(player_id):
     player = Player.objects.get(api_football_id=player_id)
     return player.past_points
 
-def calculate_new_points(stats, position):
-    """
-    Calculate points from live stats based off position.
-    """
-    points = 0
-
-    # Points for goals
-    points += stats.get("goals", 0) * 3
-
-    # Points for assists
-    points += stats.get("assists", 0) * 3
-
-    # Points for matches played
-    points += stats.get("matches_played", 0) * 1
-
-    points += stats.get("")
-
-    # Additional points for clean sheets (only defenders and goalkeepers)
-    if position in ['Defender', 'Goalkeeper'] and stats.get("clean_sheets", 0):
-        points += 4
-
-    return points
-
 @login_required
 def my_team_view(request):
     try:
         # Retrieve the user's team and its players
-        team = Team.objects.get(user=request.user)
+        team = LeagueTeam.objects.get(user=request.user)
         players = team.starting_lineup.all()  # Retrieve all players in the lineup
         captain = team.captain
 
@@ -387,9 +437,10 @@ def my_team_view(request):
         # Print debugging information for verification
         print("My Team:")
         for player in players:
+            player.past_points = calculate_points(player.goals, player.assists, player.saves, player.tackles, player.duels, player.position)
             print(f"Player: {player.name}, Position: {player.position}, Points: {player.points}, Past Points: {player.past_points}")
 
-    except Team.DoesNotExist:
+    except LeagueTeam.DoesNotExist:
         # Handle case where the user does not have a team
         messages.error(request, "You haven't selected a team yet.")
         return redirect('select_lineup')

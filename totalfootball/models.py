@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Sum
 from django.core.exceptions import ValidationError
+from django.utils.timezone import now
+from datetime import timedelta
 
 # User Model
 class User(AbstractUser):
@@ -32,12 +34,20 @@ class Player(models.Model):
     saves = models.IntegerField(default=0)
     duels = models.IntegerField(default=0)
 
+    new_goals = models.IntegerField(default=0)
+    new_assists = models.IntegerField(default=0)
+    new_tackles = models.IntegerField(default=0)
+    new_saves = models.IntegerField(default=0)
+    new_duels = models.IntegerField(default=0)
+
+    last_updated = models.DateTimeField(null=True, blank=True)
+
     # API-Football Specific Fields
     api_football_id = models.IntegerField(unique=True, null=True, blank=True)
     team_api_id = models.IntegerField(null=True, blank=True)
     league_api_id = models.IntegerField(null=True, blank=True)
 
-    last_updated = models.DateTimeField(auto_now=True)  # Tracks when player data was last updated
+    # last_updated = models.DateTimeField(auto_now=True)  # Tracks when player data was last updated
 
     def __str__(self):
         return f"{self.name} ({self.team})"
@@ -101,8 +111,19 @@ class LeagueTeam(models.Model):
             raise ValueError("Player already selected by another team.")
         self.players.add(player)
 
+    @property
+    def calculated_points(self):
+        # Points from the captain are doubled
+        captain_points = (self.captain.past_points or 0) * 2 if self.captain else 0
+        # Points from other players
+        other_players_points = self.players.exclude(id=self.captain_id).aggregate(
+            total_points=Sum('past_points')
+        )['total_points'] or 0
+        return captain_points + other_players_points
+
     def __str__(self):
         return f"{self.user.username}'s Team in {self.league.name}"
+
 
 
 # DraftPick Model
