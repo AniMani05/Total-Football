@@ -169,20 +169,19 @@ def reset_draft(league_id):
     """
     Resets the draft for a specific league.
     """
-    # from totalfootball.models import League, DraftPick, Team
-
     try:
+        # Fetch the league
         league = League.objects.get(id=league_id)
 
         # Remove all draft picks
         DraftPick.objects.filter(league=league).delete()
 
-        # Clear all players from teams in the league
-        teams = Team.objects.filter(league=league)
-        for team in teams:
-            team.players.clear()
-            team.captain = None
-            team.save()
+        # Clear all players from LeagueTeams in the league
+        league_teams = LeagueTeam.objects.filter(league=league)
+        for league_team in league_teams:
+            league_team.players.clear()
+            league_team.captain = None
+            league_team.save()
 
         # Reset league draft state
         league.draft_started = False
@@ -193,3 +192,4 @@ def reset_draft(league_id):
         print(f"Draft for league '{league.name}' has been reset.")
     except League.DoesNotExist:
         print("League not found.")
+

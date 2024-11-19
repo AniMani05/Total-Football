@@ -190,6 +190,11 @@ def draft_view(request, league_id):
     # Total teams in the league
     total_teams = league.league_teams.count()
 
+    if league.current_pick > (total_teams * 15):
+        league.draft_started = False
+        league.save()
+        return redirect('league_details', league_id=league.id)
+
     # Calculate the current round number
     round_number = (league.current_pick - 1) // total_teams + 1
 
@@ -219,8 +224,11 @@ def draft_view(request, league_id):
 
             # Advance the draft
             league.current_pick += 1
-            if league.current_pick > league.total_picks:
+            # if league.current_pick > league.total_picks:
+            if league.current_pick > (total_teams * 15):
                 league.draft_started = False
+                league.save()
+                return redirect('league_details', league_id=league.id)
             league.save()
 
     # Recalculate the current team for the updated state
@@ -254,65 +262,6 @@ def draft_view(request, league_id):
 
     return render(request, 'draft.html', context)
 
-# @login_required
-# def draft_view(request, league_id):
-#     league = get_object_or_404(League, id=league_id)
-
-#     if not league.draft_started:
-#         league.draft_started = True
-#         league.save()
-
-#     # Get all league teams ordered based on the draft direction
-#     teams = league.league_teams.order_by(
-#         'id' if league.current_pick % (2 * league.league_teams.count()) < league.league_teams.count() else '-id'
-#     )
-#     total_teams = teams.count()
-
-#     # Calculate the current team in the draft
-#     current_team_index = (league.current_pick - 1) % total_teams
-#     current_team = teams[current_team_index]
-
-#     # Handle draft pick submission
-#     if request.method == 'POST':
-#         player_id = request.POST.get('player_id')
-#         player = get_object_or_404(Player, id=player_id)
-
-#         # Check if player is already picked
-#         if DraftPick.objects.filter(league=league, player=player).exists():
-#             messages.error(request, 'Player already drafted.')
-#         else:
-#             # Record the draft pick
-#             DraftPick.objects.create(
-#                 league=league,
-#                 team=current_team,
-#                 player=player,
-#                 pick_number=league.current_pick
-#             )
-#             current_team.players.add(player)
-
-#             # Advance the draft
-#             league.current_pick += 1
-
-#             # End draft if all picks are completed
-#             if league.current_pick > league.total_picks:
-#                 league.draft_started = False
-
-#             league.save()
-#             messages.success(request, 'Player drafted successfully!')
-
-#     # Get available players (not yet drafted), ordered by past_points
-#     drafted_players = DraftPick.objects.filter(league=league).values_list('player_id', flat=True)
-#     available_players = Player.objects.exclude(id__in=drafted_players).order_by('-past_points')
-
-#     context = {
-#         'league': league,
-#         'current_team': current_team,
-#         'available_players': available_players,
-#         'drafted_players': DraftPick.objects.filter(league=league).order_by('pick_number'),
-#     }
-
-#     return render(request, 'draft.html', context)
-
 @login_required
 def finalize_draft(request, league_id):
     league = get_object_or_404(League, id=league_id)
@@ -323,18 +272,25 @@ def finalize_draft(request, league_id):
     else:
         return JsonResponse({'error': 'Draft not complete yet.'}, status=400)
 
+from django.db.models import Q
+
 @login_required
 def select_lineup(request):
     # This function allows users to set their lineups after drafting
+    # league = get_object_or_404(League, id=league_id)
 
     # Checks if the user already has selected a team
-    team, created = Team.objects.get_or_create(user=request.user)
+    team, created = LeagueTeam.objects.get_or_create(user=request.user)
 
+    # Filter players by those assigned to the user's team
+    drafted_players = team.players.all()
+
+    # Group players by position for better organization in the template
     players_by_position = {
-        'Goalkeepers': Player.objects.filter(position='Goalkeeper').order_by('name'),
-        'Defenders': Player.objects.filter(position='Defender').order_by('name'),
-        'Midfielders': Player.objects.filter(position='Midfielder').order_by('name'),
-        'Forwards': Player.objects.filter(position='Forward').order_by('name'),
+        'Goalkeepers': drafted_players.filter(position='Goalkeeper').order_by('name'),
+        'Defenders': drafted_players.filter(position='Defender').order_by('name'),
+        'Midfielders': drafted_players.filter(position='Midfielder').order_by('name'),
+        'Forwards': drafted_players.filter(position='Forward').order_by('name'),
     }
 
     if request.method == "POST":
@@ -353,12 +309,12 @@ def select_lineup(request):
                 messages.error(request, "You must select players and a captain.")
                 return redirect('select_lineup')
 
-        players_selected = Player.objects.filter(id__in=player_ids)
-        captain = Player.objects.filter(id=captain_id).first()
+        # Validate that all selected players belong to the user's drafted team
+        players_selected = drafted_players.filter(id__in=player_ids)
+        captain = drafted_players.filter(id=captain_id).first()
 
         if len(players_selected) != 11:
             if request.content_type == "application/json":
-                print(players_selected)
                 return JsonResponse({'error': "You must select exactly 11 players."}, status=400)
             else:
                 messages.error(request, "You must select exactly 11 players.")
@@ -371,6 +327,7 @@ def select_lineup(request):
                 messages.error(request, "The captain must be one of the selected players.")
                 return redirect('select_lineup')
 
+        # Save the selected lineup and captain
         team.starting_lineup.set(players_selected)
         team.captain = captain
         team.save()
@@ -385,6 +342,7 @@ def select_lineup(request):
         'players_by_position': players_by_position,
     }
     return render(request, 'select_lineup.html', context)
+
 
 def fetch_past_player_points(player_id):
     player = Player.objects.get(api_football_id=player_id)
