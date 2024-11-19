@@ -8,7 +8,7 @@ import json
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import User, Player, Team, League, LeagueTeam
+from .models import User, Player, Team, League, LeagueTeam, DraftPick
 from django.contrib.auth.decorators import login_required
 from .forms import LoginForm, RegisterForm, ProfileForm, JoinLeagueForm, CreateLeagueForm
 
@@ -57,6 +57,7 @@ def homepage_action(request):
     }
 
     return render(request, 'homepage.html', context)
+
 
 def login_action(request):
     if request.user.is_authenticated:
@@ -177,6 +178,150 @@ def get_profile_picture(request, user_id):
         raise Http404("Profile image file not found.")
 
     return HttpResponse(image_data, content_type='image/jpeg')
+
+@login_required
+def draft_view(request, league_id):
+    league = get_object_or_404(League, id=league_id)
+
+    if not league.draft_started:
+        league.draft_started = True
+        league.save()
+
+    # Total teams in the league
+    total_teams = league.league_teams.count()
+
+    # Calculate the current round number
+    round_number = (league.current_pick - 1) // total_teams + 1
+
+    # Determine the direction based on the round number
+    direction = 'id' if round_number % 2 == 1 else '-id'
+    teams = league.league_teams.order_by(direction)
+
+    # Handle draft pick submission
+    if request.method == 'POST':
+        player_id = request.POST.get('player_id')
+        player = get_object_or_404(Player, id=player_id)
+
+        # Check if player is already picked
+        if DraftPick.objects.filter(league=league, player=player).exists():
+            messages.error(request, 'Player already drafted.')
+        else:
+            # Record the draft pick
+            current_team_index = (league.current_pick - 1) % total_teams
+            current_team = teams[current_team_index]
+            DraftPick.objects.create(
+                league=league,
+                team=current_team,
+                player=player,
+                pick_number=league.current_pick
+            )
+            current_team.players.add(player)
+
+            # Advance the draft
+            league.current_pick += 1
+            if league.current_pick > league.total_picks:
+                league.draft_started = False
+            league.save()
+
+    # Recalculate the current team for the updated state
+    if league.current_pick <= league.total_picks:
+        round_number = (league.current_pick - 1) // total_teams + 1
+        direction = 'id' if round_number % 2 == 1 else '-id'
+        teams = league.league_teams.order_by(direction)
+        current_team_index = (league.current_pick - 1) % total_teams
+        current_team = teams[current_team_index]
+    else:
+        current_team = None  # No current team after the draft ends
+
+    # Get available players (not yet drafted)
+    drafted_players = DraftPick.objects.filter(league=league).values_list('player_id', flat=True)
+    available_players = Player.objects.exclude(id__in=drafted_players)
+
+    # Categorize and sort players by position and points
+    players_by_position = {
+        "Goalkeepers": available_players.filter(position="Goalkeeper").order_by('-past_points'),
+        "Defenders": available_players.filter(position="Defender").order_by('-past_points'),
+        "Midfielders": available_players.filter(position="Midfielder").order_by('-past_points'),
+        "Attackers": available_players.filter(position="Attacker").order_by('-past_points'),
+    }
+
+    context = {
+        'league': league,
+        'current_team': current_team,
+        'players_by_position': players_by_position,
+        'drafted_players': DraftPick.objects.filter(league=league).order_by('pick_number'),
+    }
+
+    return render(request, 'draft.html', context)
+
+# @login_required
+# def draft_view(request, league_id):
+#     league = get_object_or_404(League, id=league_id)
+
+#     if not league.draft_started:
+#         league.draft_started = True
+#         league.save()
+
+#     # Get all league teams ordered based on the draft direction
+#     teams = league.league_teams.order_by(
+#         'id' if league.current_pick % (2 * league.league_teams.count()) < league.league_teams.count() else '-id'
+#     )
+#     total_teams = teams.count()
+
+#     # Calculate the current team in the draft
+#     current_team_index = (league.current_pick - 1) % total_teams
+#     current_team = teams[current_team_index]
+
+#     # Handle draft pick submission
+#     if request.method == 'POST':
+#         player_id = request.POST.get('player_id')
+#         player = get_object_or_404(Player, id=player_id)
+
+#         # Check if player is already picked
+#         if DraftPick.objects.filter(league=league, player=player).exists():
+#             messages.error(request, 'Player already drafted.')
+#         else:
+#             # Record the draft pick
+#             DraftPick.objects.create(
+#                 league=league,
+#                 team=current_team,
+#                 player=player,
+#                 pick_number=league.current_pick
+#             )
+#             current_team.players.add(player)
+
+#             # Advance the draft
+#             league.current_pick += 1
+
+#             # End draft if all picks are completed
+#             if league.current_pick > league.total_picks:
+#                 league.draft_started = False
+
+#             league.save()
+#             messages.success(request, 'Player drafted successfully!')
+
+#     # Get available players (not yet drafted), ordered by past_points
+#     drafted_players = DraftPick.objects.filter(league=league).values_list('player_id', flat=True)
+#     available_players = Player.objects.exclude(id__in=drafted_players).order_by('-past_points')
+
+#     context = {
+#         'league': league,
+#         'current_team': current_team,
+#         'available_players': available_players,
+#         'drafted_players': DraftPick.objects.filter(league=league).order_by('pick_number'),
+#     }
+
+#     return render(request, 'draft.html', context)
+
+@login_required
+def finalize_draft(request, league_id):
+    league = get_object_or_404(League, id=league_id)
+    if league.current_pick > league.total_picks:
+        league.draft_started = False
+        league.save()
+        return JsonResponse({'success': 'Draft finalized successfully!'})
+    else:
+        return JsonResponse({'error': 'Draft not complete yet.'}, status=400)
 
 @login_required
 def select_lineup(request):

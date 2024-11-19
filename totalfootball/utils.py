@@ -1,7 +1,7 @@
 import requests
 import time
 from django.db import transaction
-from .models import Player
+from .models import Player, LeagueTeam, League, DraftPick, Team
 
 API_URL = "https://api-football-v1.p.rapidapi.com/v3"
 API_KEY = "9f340e84c7msh3a8fcf6665f37f2p134bc1jsn68c53749acd7"
@@ -164,3 +164,32 @@ def fetch_balanced_top_36():
     print("\nSelected Players:")
     for player in selected_players:
         print(f"{player['name']} - {player['position']} - Score: {player['score']:.2f}")
+
+def reset_draft(league_id):
+    """
+    Resets the draft for a specific league.
+    """
+    # from totalfootball.models import League, DraftPick, Team
+
+    try:
+        league = League.objects.get(id=league_id)
+
+        # Remove all draft picks
+        DraftPick.objects.filter(league=league).delete()
+
+        # Clear all players from teams in the league
+        teams = Team.objects.filter(league=league)
+        for team in teams:
+            team.players.clear()
+            team.captain = None
+            team.save()
+
+        # Reset league draft state
+        league.draft_started = False
+        league.current_pick = 1
+        league.round_number = 1
+        league.save()
+
+        print(f"Draft for league '{league.name}' has been reset.")
+    except League.DoesNotExist:
+        print("League not found.")
