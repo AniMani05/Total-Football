@@ -22,63 +22,11 @@ HEADERS = {
     "x-rapidapi-key": API_KEY,
 }
 
-def fetch_past_player_stats(player_id, season):
-    """
-    Fetch past stats for a player for a specific season.
-    """
-    url = f"{API_URL}/players"
-    params = {
-        "id": player_id,
-        "season": season,  # Specify the past season (e.g., "2022")
-    }
-    response = requests.get(url, headers=HEADERS, params=params)
-
-    if response.status_code == 200:
-        data = response.json()
-        # Debug: Print the raw API response
-        print(f"API Response for Player {player_id} (Season {season}): {data}")
-        if data['response']:
-            # Extract relevant stats
-            stats = data['response'][0]['statistics'][0]
-            return {
-                "goals": stats['goals']['total'] or 0,
-                "assists": stats['goals']['assists'] or 0,
-                "matches_played": stats['games']['appearances'] or 0,
-                "clean_sheets": stats.get('clean_sheet', 0)  # Some APIs may have clean sheet data
-            }
-    else:
-        print(f"Error fetching stats for player {player_id}: {response.status_code}")
-    return None
-
-def fetch_player_stats(player_ids):
-    """
-    Fetch live stats for a list of player IDs.
-    """
-    url = f"{API_URL}/players"
-    player_stats = {}
-
-    for player_id in player_ids:
-        params = {"id": player_id, "season": "2023"}
-        response = requests.get(url, headers=HEADERS, params=params)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data['response']:
-                stats = data['response'][0]['statistics'][0]
-                player_stats[player_id] = {
-                    "goals": stats['goals']['total'],
-                    "assists": stats['goals']['assists'],
-                    "matches_played": stats['games']['appearances'],
-                    # Add more fields if needed
-                }
-        else:
-            print(f"Error fetching stats for player {player_id}: {response.status_code}")
-    
-    return player_stats
-
 def homepage_action(request):
+    # Displays the top ten overall players on the home page
     top_players = Player.objects.order_by('-points')[:10]
 
+    # Displays each team and their points
     teams = Team.objects.all()
     team_points = []
 
@@ -100,6 +48,7 @@ def homepage_action(request):
             'total_points': total_points,
         })
 
+    # Sorts the teams by their total points scored
     top_users = sorted(team_points, key=lambda x: x['total_points'], reverse=True)[:10]
 
     context = {
@@ -231,6 +180,9 @@ def get_profile_picture(request, user_id):
 
 @login_required
 def select_lineup(request):
+    # This function allows users to set their lineups after drafting
+
+    # Checks if the user already has selected a team
     team, created = Team.objects.get_or_create(user=request.user)
 
     players_by_position = {
@@ -289,32 +241,18 @@ def select_lineup(request):
     }
     return render(request, 'select_lineup.html', context)
 
-# @login_required
-# def my_team_view(request):
-#     try:
-#         team = Team.objects.get(user=request.user)
-#         players = team.starting_lineup.all()
-#         captain = team.captain
-#     except Team.DoesNotExist:
-#         messages.error(request, "You haven't selected a team yet.")
-#         return redirect('select_lineup')
+def fetch_past_player_points(player_id):
+    player = Player.objects.get(api_football_id=player_id)
+    return player.past_points
 
-#     context = {
-#         'team': team,
-#         'players': players,
-#         'captain': captain,
-#     }
-
-#     return render(request, 'my_team.html', context)
-
-def calculate_past_points(stats, position):
+def calculate_new_points(stats, position):
     """
-    Calculate points for past stats based on goals, assists, matches, and position.
+    Calculate points from live stats based off position.
     """
     points = 0
 
     # Points for goals
-    points += stats.get("goals", 0) * 4
+    points += stats.get("goals", 0) * 3
 
     # Points for assists
     points += stats.get("assists", 0) * 3
@@ -322,106 +260,34 @@ def calculate_past_points(stats, position):
     # Points for matches played
     points += stats.get("matches_played", 0) * 1
 
-    # Additional points for clean sheets (only defenders and goalkeepers)
-    if position in ['Defender', 'Goalkeeper'] and stats.get("clean_sheets", 0):
-        points += 4
-
-    return points
-
-def calculate_points(stats, position):
-    """
-    Calculate points for a player based on live stats and their position.
-    """
-    points = 0
-
-    # Points for goals
-    points += stats.get("goals", 0) * 4
-
-    # Points for assists
-    points += stats.get("assists", 0) * 3
-
-    # Points for matches played
-    points += stats.get("matches_played", 0) * 1
+    points += stats.get("")
 
     # Additional points for clean sheets (only defenders and goalkeepers)
     if position in ['Defender', 'Goalkeeper'] and stats.get("clean_sheets", 0):
         points += 4
 
     return points
-
-# @login_required
-# def my_team_view(request):
-#     try:
-#         team = Team.objects.get(user=request.user)
-#         players = team.starting_lineup.all()
-#         captain = team.captain
-
-#         # Get player IDs
-#         player_ids = [player.api_football_id for player in players if player.api_football_id]
-#         player_stats = fetch_player_stats(player_ids)
-
-#         # Attach live stats to players and update points
-#         for player in players:
-#             stats = player_stats.get(player.api_football_id, {})
-#             player.live_stats = stats
-#             player.points = calculate_points(stats, player.position)  # Update points
-            
-#             # Print player details for debugging
-#             print(f"Player: {player.name}")
-#             print(f"Live Stats: {stats}")
-#             print(f"Calculated Points: {player.points}")
-            
-#             player.save()  # Save updated points to the database
-
-#     except Team.DoesNotExist:
-#         messages.error(request, "You haven't selected a team yet.")
-#         return redirect('select_lineup')
-
-#     context = {
-#         'team': team,
-#         'players': players,
-#         'captain': captain,
-#     }
-
-#     return render(request, 'my_team.html', context)
 
 @login_required
 def my_team_view(request):
     try:
+        # Retrieve the user's team and its players
         team = Team.objects.get(user=request.user)
-        players = team.starting_lineup.all()
+        players = team.starting_lineup.all()  # Retrieve all players in the lineup
         captain = team.captain
 
-        # Get player IDs
-        player_ids = [player.api_football_id for player in players if player.api_football_id]
+        # Calculate total points including captain's bonus
+        captain_points = (captain.past_points or 0) * 2 if captain else 0
+        non_captain_points = sum(player.past_points for player in players if player != captain)
+        total_points = captain_points + non_captain_points
 
-        # Fetch live stats and past stats
-        live_player_stats = fetch_player_stats(player_ids)
-        past_season = "2022"  # Example of a past season
+        # Print debugging information for verification
+        print("My Team:")
         for player in players:
-            stats = live_player_stats.get(player.api_football_id, {})
-            past_stats = fetch_past_player_stats(player.api_football_id, past_season)
-
-            # Update live points
-            player.live_stats = stats
-            player.points = calculate_points(stats, player.position)
-
-            # Update past points
-            if past_stats:
-                player.past_points = calculate_past_points(past_stats, player.position)
-            else:
-                player.past_points = 0  # Default to 0 if no past stats available
-            
-            # Print debugging information
-            print(f"Player: {player.name}")
-            print(f"Live Stats: {stats}")
-            print(f"Past Stats: {past_stats}")
-            print(f"Live Points: {player.points}")
-            print(f"Past Points: {player.past_points}")
-
-            player.save()  # Save updated points to the database
+            print(f"Player: {player.name}, Position: {player.position}, Points: {player.points}, Past Points: {player.past_points}")
 
     except Team.DoesNotExist:
+        # Handle case where the user does not have a team
         messages.error(request, "You haven't selected a team yet.")
         return redirect('select_lineup')
 
@@ -429,10 +295,10 @@ def my_team_view(request):
         'team': team,
         'players': players,
         'captain': captain,
+        'total_points': total_points,
     }
 
     return render(request, 'my_team.html', context)
-
 
 @login_required
 def create_league(request):

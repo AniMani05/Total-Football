@@ -37,7 +37,7 @@ def fetch_balanced_top_36():
     """
     Fetch and save 36 balanced players (5 Goalkeepers, 10 Defenders, 12 Midfielders, 9 Attackers)
     """
-    league_id = 78  # Premier League
+    league_id = 140  # Premier League
     season = "2024"
     players_by_position = {"Goalkeeper": [], "Defender": [], "Midfielder": [], "Attacker": []}
     page = 1
@@ -59,30 +59,31 @@ def fetch_balanced_top_36():
                 # Calculate score based on position-specific weights
                 if position == "Goalkeeper":
                     score = (
-                        safe_stat_value(stats["games"]["minutes"]) * 0.4 +
-                        safe_stat_value(stats["goals"]["saves"]) * 0.4 +
-                        safe_stat_value(stats["tackles"]["total"]) * 0.2
+                        safe_stat_value(stats["games"]["minutes"]) * 0.1 +
+                        safe_stat_value(stats["goals"]["saves"]) * 0.5 +
+                        safe_stat_value(stats["tackles"]["total"]) * 0.15 +
+                        safe_stat_value(stats["duels"]["won"]) * 0.25
                     )
                 elif position == "Defender":
                     score = (
-                        safe_stat_value(stats["games"]["minutes"]) * 0.3 +
-                        safe_stat_value(stats["tackles"]["total"]) * 0.25 +
-                        safe_stat_value(stats["tackles"]["interceptions"]) * 0.25 +
-                        safe_stat_value(stats["tackles"]["blocks"]) * 0.1 +
+                        safe_stat_value(stats["games"]["minutes"]) * 0.15 +
+                        safe_stat_value(stats["tackles"]["total"]) * 0.3 +
+                        safe_stat_value(stats["tackles"]["interceptions"]) * 0.3 +
+                        safe_stat_value(stats["tackles"]["blocks"]) * 0.15 +
                         safe_stat_value(stats["goals"]["assists"]) * 0.1
                     )
                 elif position == "Midfielder":
                     score = (
-                        safe_stat_value(stats["games"]["minutes"]) * 0.25 +
+                        safe_stat_value(stats["games"]["minutes"]) * 0.15 +
                         safe_stat_value(stats["goals"]["total"]) * 0.25 +
-                        safe_stat_value(stats["goals"]["assists"]) * 0.25 +
+                        safe_stat_value(stats["goals"]["assists"]) * 0.35 +
                         safe_stat_value(stats["tackles"]["total"]) * 0.15 +
                         safe_stat_value(stats["tackles"]["interceptions"]) * 0.1
                     )
                 elif position == "Attacker":
                     score = (
-                        safe_stat_value(stats["games"]["minutes"]) * 0.2 +
-                        safe_stat_value(stats["goals"]["total"]) * 0.4 +
+                        safe_stat_value(stats["games"]["minutes"]) * 0.15 +
+                        safe_stat_value(stats["goals"]["total"]) * 0.45 +
                         safe_stat_value(stats["goals"]["assists"]) * 0.2 +
                         safe_stat_value(stats["tackles"]["total"]) * 0.1 +
                         safe_stat_value(stats["tackles"]["interceptions"]) * 0.1
@@ -95,6 +96,11 @@ def fetch_balanced_top_36():
                     "team": stats["team"]["name"],
                     "league": stats["league"]["name"],
                     "position": position,
+                    "goals": safe_stat_value(stats["goals"]["total"]),
+                    "assists": safe_stat_value(stats["goals"]["assists"]),
+                    "tackles": safe_stat_value(stats["tackles"]["total"]) + safe_stat_value(stats["tackles"]["interceptions"]) + safe_stat_value(stats["tackles"]["blocks"]),
+                    "saves": safe_stat_value(stats["goals"]["saves"]),
+                    "duels": safe_stat_value(stats["duels"]["won"]),
                     "api_football_id": player_data["player"]["id"],
                     "stats": stats,
                     "score": score,
@@ -119,9 +125,9 @@ def fetch_balanced_top_36():
         players_by_position[position] = sorted(
             players_by_position[position], key=lambda x: x["score"], reverse=True
         )
-        print(f"\nTop players for position {position}:")
-        for player in players_by_position[position]:
-            print(f"  {player['name']} - Score: {player['score']:.2f}")
+        # print(f"\nTop players for position {position}:")
+        # for player in players_by_position[position]:
+        #     print(f"  {player['name']} - Score: {player['score']:.2f}")
 
     # Select the top players (3 Goalkeepers, 4 Defenders, 5 Midfielders, 3 Attackers)
     selected_players = (
@@ -141,9 +147,14 @@ def fetch_balanced_top_36():
                     "team": player["team"],
                     "league": player["league"],
                     "position": player["position"],
+                    "goals": player["goals"],
+                    "assists": player["assists"],
+                    "tackles": player["tackles"],
+                    "saves": player["saves"],
+                    "duels": player["duels"],
                     "price": 0,  # Set default price or calculate dynamically
-                    "points": int(player["score"]),  # Save the calculated score
-                    "past_points": 0,  # Historical points (if needed)
+                    "points": 0,  # Save the calculated score
+                    "past_points": int(player["score"]),  # Historical points (if needed)
                     "team_api_id": player["stats"]["team"]["id"],
                     "league_api_id": player["stats"]["league"]["id"],
                 }
