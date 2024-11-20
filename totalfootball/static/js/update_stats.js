@@ -54,7 +54,7 @@ function schedulePlayerUpdates(playerIds) {
         });
 
         iterations--;
-    }, 2 * 60 * 1000); // 2 minutes in milliseconds
+    }, 3 * 60 * 60 * 1000); // 2 minutes in milliseconds
 }
 
 // List of test player IDs
