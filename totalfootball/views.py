@@ -19,7 +19,7 @@ from .forms import LoginForm, RegisterForm, ProfileForm, JoinLeagueForm, CreateL
 import requests
 
 API_URL = "https://api-football-v1.p.rapidapi.com/v3"
-API_KEY = "f718776270mshdd18e7b443cbdc3p18da49jsn5614850c11a8"
+API_KEY = "9f340e84c7msh3a8fcf6665f37f2p134bc1jsn68c53749acd7"
 
 HEADERS = {
     "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
@@ -334,6 +334,19 @@ def fetch_player_stats(player_id):
             data = response.json()
             logger.info(f"[{now()}] Successfully fetched stats for player {player_id}. Response: {data}")
 
+            player = Player.objects.get(api_football_id=player_id)
+
+            stats = data['response'][0]['statistics'][0]
+            player.goals = stats.get("goals", {}).get("total", 0) or 0
+            player.assists = stats.get("goals", {}).get("assists", 0) or 0
+            player.saves = stats.get("goals", {}).get("saves", 0) or 0
+            player.tackles = stats.get("tackles", {}).get("total", 0) or 0
+            player.duels = stats.get("duels", {}).get("won", 0) or 0
+
+            player.past_points = calculate_points(player.goals, player.assists, player.saves, player.tackles, player.duels, player.position)
+            player.last_updated = now()
+
+            player.save()
 
             return {"success": True, "message": f"Stats fetched for player {player_id}"}
         else:

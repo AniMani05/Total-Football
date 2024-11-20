@@ -11,53 +11,6 @@ function getCSRFToken() {
     return ''; // Return an empty string if not found
 }
 
-// Function to update player stats via API call
-// async function updatePlayerStats(playerId) {
-//     console.log(`Attempting to update stats for player ${playerId}...`); // Log request initiation
-
-//     try {
-//         const response = await fetch(`/update-stats/${playerId}/`, {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'X-CSRFToken': getCSRFToken(), // Include CSRF token
-//             },
-//         });
-
-//         if (response.ok) {
-//             const data = await response.json();
-//             console.log(`Player ${playerId} stats updated successfully:`, data);
-//         } else {
-//             console.error(`Error updating stats for player ${playerId}: ${response.statusText}`);
-//         }
-//     } catch (error) {
-//         console.error(`Error fetching stats for player ${playerId}:`, error);
-//     }
-// }
-
-// async function updatePlayerStats(playerId) {
-//     console.log(`Attempting to update stats for player ${playerId}...`); // Log request initiation
-
-//     try {
-//         const response = await fetch(`/update-stats/${playerId}/`, {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'X-CSRFToken': getCSRFToken(), // Include CSRF token
-//             },
-//         });
-
-//         if (response.ok) {
-//             const data = await response.json();
-//             console.log(`Player ${playerId} stats updated successfully:`, JSON.stringify(data, null, 2));
-//         } else {
-//             console.error(`Error updating stats for player ${playerId}: ${response.statusText}`);
-//         }
-//     } catch (error) {
-//         console.error(`Error fetching stats for player ${playerId}:`, error);
-//     }
-// }
-
 async function updatePlayerStats(playerId) {
     console.log(`Attempting to update stats for player ${playerId}...`);
 

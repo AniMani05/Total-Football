@@ -1,49 +1,12 @@
+{% extends "base.html" %}
+{% load static %}
 
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Total Football</title>
-    {% load static %}
+{% block head %}
     <link rel="stylesheet" href="../static/Players.css">
     <link rel="stylesheet" href="../static/header.css">
-</head>
-<body>
-    <div class="header-box" id="id_header_div">
-        <div class="centered" id="id_site_name">
-            <a href="/homepage">TOTAL FOOTBALL</a>
-        </div>
-        <div class="bottom" id="id_nav_profile">
-            <a href="{% url 'profile' user.id %}">{{ user.first_name }} {{ user.last_name }}</a>
-        </div>
-        <div class="bottom" id="id_nav_global_stream">
-            <a href="/select-lineup">Select Lineup</a>
-        </div>
-        <div class="bottom" id="id_nav_follower_stream">
-            <a href="/my-team">My Team</a>
-        </div>
-        <div class="bottom" id="id_nav_follower_stream">
-            <a href="/create-league">Create League</a>
-        </div>
-        <div class="bottom" id="id_nav_follower_stream">
-            <a href="/join-league">Join League</a>
-        </div>
-        <div class="bottom dropdown" id="id_nav_view_leagues">
-            <span>View Leagues ▼</span>
-            <div class="dropdown-content">
-                {% for league in user.leagues.all %}
-                    <a href="{% url 'league_details' league.id %}">{{ league.name }}</a>
-                {% empty %}
-                    <p>No leagues joined.</p>
-                {% endfor %}
-            </div>
-        </div>
-        <div class="bottom" id="id_nav_logout">
-            <a href="/logout">Logout</a>
-        </div>
-    </div>
+{% endblock %}
+    
+{% block content %}
 
 
     <h1>Select Your Starting Lineup and Captain</h1>
@@ -56,4 +19,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
     <script type="module" src="/static/js/App.js"></script>
-</html>
+
+{% endblock %}
