@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.db.models import Sum, Case, When, F, IntegerField, Value, Subquery, OuterRef
 from django.utils.timezone import now
 from datetime import timedelta
+import logging
+logger = logging.getLogger(__name__)
 
 import json
 
@@ -181,20 +183,41 @@ def get_profile_picture(request, user_id):
 
     return HttpResponse(image_data, content_type='image/jpeg')
 
-@login_required
 def update_player_stats(request, player_id):
     if request.method == "POST":
         try:
             # Fetch stats from the external API
-            result = fetch_player_stats(player_id) 
+            result = fetch_player_stats(player_id)
 
             if result["success"]:
-                return JsonResponse({"success": True, "message": f"Player {player_id} updated successfully."})
+                # Retrieve the updated player object
+                player = Player.objects.get(api_football_id=player_id)
+                
+                # Create a dictionary of updated player stats
+                updated_stats = {
+                    "name": player.name,
+                    "position": player.position,
+                    "goals": player.goals,
+                    "assists": player.assists,
+                    "tackles": player.tackles,
+                    "saves": player.saves,
+                    "duels": player.duels,
+                    "points": player.points,
+                    "last_updated": player.last_updated.strftime('%Y-%m-%d %H:%M:%S') if player.last_updated else None,
+                }
+
+                return JsonResponse({
+                    "success": True,
+                    "message": f"Player {player_id} updated successfully.",
+                    "updated_stats": updated_stats
+                })
+
             else:
                 return JsonResponse({"success": False, "error": result["error"]}, status=400)
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request method."}, status=405)
+
 
 @login_required
 def draft_view(request, league_id):
@@ -298,53 +321,27 @@ def fetch_player_stats(player_id):
     """
     Fetch live stats for a player by their API ID and update the database if 6 hours have passed since the last update.
     """
+    
+    logger.info(f"[{now()}] Sending request for player {player_id}")
+
+    url = f"{API_URL}/players"
+    params = {"id": player_id, "season": "2024"}  # Update the season dynamically as needed
+
     try:
-        player = Player.objects.get(api_football_id=player_id)
-
-        # Check if 6 hours have passed since the last update
-        if player.last_updated and now() - player.last_updated < timedelta(hours=6):
-            return {"success": False, "message": "Stats were recently updated. Try again later."}
-
-        url = f"{API_URL}/players"
-        params = {"id": player_id, "season": "2024"}  # Update the season dynamically as needed
         response = requests.get(url, headers=HEADERS, params=params)
 
         if response.status_code == 200:
             data = response.json()
-            stats = data['response'][0]['statistics'][0]
+            logger.info(f"[{now()}] Successfully fetched stats for player {player_id}. Response: {data}")
 
-            # Calculate the difference in stats
-            new_goals = stats["goals"]["total"] or 0 - player.last_goals
-            new_assists = stats["goals"]["assists"] or 0 - player.last_assists
-            new_tackles = stats["tackles"]["total"] or 0 - player.last_tackles
-            new_saves = stats["goals"]["saves"] or 0 - player.last_saves
-            new_duels = stats["duels"]["won"] or 0 - player.last_duels
 
-            # Update stats only with the differences
-            player.new_goals += max(0, new_goals)
-            player.new_assists += max(0, new_assists)
-            player.new_tackles += max(0, new_tackles)
-            player.new_saves += max(0, new_saves)
-            player.new_duels += max(0, new_duels)
-            player.points += calculate_points(player.new_goals, player.new_assists, player.new_saves, player.new_tackles, player.new_duels, player.position)
-
-            # Update the last known stats
-            player.goals = stats["goals"]["total"] or 0
-            player.assists = stats["goals"]["assists"] or 0
-            player.tackles = stats["tackles"]["total"] or 0
-            player.saves = stats["goals"]["saves"] or 0
-            player.duels = stats["duels"]["won"] or 0
-            player.past_points = calculate_points(player.goals, player.assists, player.saves, player.tackles, player.duels, player.position)
-
-            # Update the last_updated timestamp
-            player.last_updated = now()
-            player.save()
-
-            return {"success": True, "player": player.name, "updated_stats": stats}
+            return {"success": True, "message": f"Stats fetched for player {player_id}"}
         else:
-            return {"success": False, "error": "API request failed."}
-    except (KeyError, IndexError, Player.DoesNotExist):
-        return {"success": False, "error": "Failed to update player stats."}
+            logger.warning(f"[{now()}] Failed to fetch stats for player {player_id}. Status: {response.status_code}")
+            return {"success": False, "error": f"API request failed with status code {response.status_code}"}
+    except Exception as e:
+        logger.error(f"[{now()}] Error fetching stats for player {player_id}: {str(e)}")
+        return {"success": False, "error": "An unexpected error occurred."}
 
 
 @login_required
