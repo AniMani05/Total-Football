@@ -58,7 +58,7 @@ def homepage_action(request):
             'total_points': total_points,
         })
 
-    # Sorts the teams by their total points scored
+    # Sorts the league teams by their total points scored
     top_users = sorted(team_points, key=lambda x: x['total_points'], reverse=True)[:10]
 
     context = {
@@ -68,7 +68,7 @@ def homepage_action(request):
 
     return render(request, 'homepage.html', context)
 
-
+# Login page for the user
 def login_action(request):
     if request.user.is_authenticated:
         return redirect('homepage')
@@ -96,6 +96,7 @@ def login_action(request):
     login(request, new_user)
     return redirect('homepage')
 
+# User can register if they are not already logged in
 def register_action(request):
     context = {}
 
@@ -134,11 +135,13 @@ def register_action(request):
         print("Authentication failed.")
         return render(request, 'register.html', {'form': form, 'error': 'Authentication failed.'})
 
+# Enables the user to log out when necessary
 def logout_action(request):
     logout(request)
     
     return redirect('login')
 
+# Profile page actions
 def profile_action(request, user_id):
     user = get_object_or_404(User, id=user_id)
     context = {}
@@ -174,6 +177,7 @@ def profile_action(request, user_id):
 
     return render(request, "profile.html", context)
 
+# Enables users to upload their profile picture
 @login_required
 def get_profile_picture(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -189,10 +193,11 @@ def get_profile_picture(request, user_id):
 
     return HttpResponse(image_data, content_type='image/jpeg')
 
+# Enables updates using the API
 def update_player_stats(request, player_id):
     if request.method == "POST":
         try:
-            # Fetch stats from the external API
+            # Fetch stats from the external API by calling the helper method defined above
             result = fetch_player_stats(player_id)
 
             if result["success"]:
@@ -233,6 +238,8 @@ def draft_view(request, league_id):
         league.draft_started = True
         league.save()
 
+    # The following information enables us to simulate a snake draft to choose players. 
+
     # Total teams in the league
     total_teams = league.league_teams.count()
 
@@ -270,14 +277,15 @@ def draft_view(request, league_id):
 
             # Advance the draft
             league.current_pick += 1
-            # if league.current_pick > league.total_picks:
+            
+            # We end the snake draft once teams have selected their 15 players
             if league.current_pick > (total_teams * 15):
                 league.draft_started = False
                 league.save()
                 return redirect('league_details', league_id=league.id)
             league.save()
 
-    # Recalculate the current team for the updated state
+    # Recalculate the team that should be drafting
     if league.current_pick <= league.total_picks:
         round_number = (league.current_pick - 1) // total_teams + 1
         direction = 'id' if round_number % 2 == 1 else '-id'
@@ -285,13 +293,13 @@ def draft_view(request, league_id):
         current_team_index = (league.current_pick - 1) % total_teams
         current_team = teams[current_team_index]
     else:
-        current_team = None  # No current team after the draft ends
+        current_team = None  
 
     # Get available players (not yet drafted)
     drafted_players = DraftPick.objects.filter(league=league).values_list('player_id', flat=True)
     available_players = Player.objects.exclude(id__in=drafted_players)
 
-    # Categorize and sort players by position and points
+    # Categorize and sort players by position and points to display (this gives users an idea of who to draft)
     players_by_position = {
         "Goalkeepers": available_players.filter(position="Goalkeeper").order_by('-past_points'),
         "Defenders": available_players.filter(position="Defender").order_by('-past_points'),
@@ -308,10 +316,9 @@ def draft_view(request, league_id):
 
     return render(request, 'draft.html', context)
 
+# Calculates the fantasy points for each player using their stats
 def calculate_points(goals, assists, saves, tackles, duels, position):
-    # player = Player.objects.get(api_football_id=player_id)
     new_score = 0
-    # position = player.position
     if position == "Goalkeeper":
         new_score += saves*0.5 + tackles*0.25 + duels*0.25
     elif position == "Defender":
@@ -321,14 +328,12 @@ def calculate_points(goals, assists, saves, tackles, duels, position):
     elif position == "Attacker":
         new_score += assists*0.25 + goals*0.5 + tackles*0.15 + duels*0.1
     
-    return new_score/2
+    return new_score
 
-def fetch_player_stats(player_id):
-    """
-    Fetch live stats for a player by their API ID and update the database if 6 hours have passed since the last update.
-    """
-    
-    logger.info(f"[{now()}] Sending request for player {player_id}")
+# Fetch live stats for a player by their API ID and update the database if 6 hours have passed since the last update.
+
+def fetch_player_stats(player_id):    
+    # logger.info(f"[{now()}] Sending request for player {player_id}")
 
     url = f"{API_URL}/players"
     params = {"id": player_id, "season": "2024"}  # Update the season dynamically as needed
@@ -338,7 +343,7 @@ def fetch_player_stats(player_id):
 
         if response.status_code == 200:
             data = response.json()
-            logger.info(f"[{now()}] Successfully fetched stats for player {player_id}. Response: {data}")
+            # logger.info(f"[{now()}] Successfully fetched stats for player {player_id}. Response: {data}")
 
             player = Player.objects.get(api_football_id=player_id)
 
@@ -356,18 +361,15 @@ def fetch_player_stats(player_id):
 
             return {"success": True, "message": f"Stats fetched for player {player_id}"}
         else:
-            logger.warning(f"[{now()}] Failed to fetch stats for player {player_id}. Status: {response.status_code}")
+            # logger.warning(f"[{now()}] Failed to fetch stats for player {player_id}. Status: {response.status_code}")
             return {"success": False, "error": f"API request failed with status code {response.status_code}"}
     except Exception as e:
-        logger.error(f"[{now()}] Error fetching stats for player {player_id}: {str(e)}")
+        # logger.error(f"[{now()}] Error fetching stats for player {player_id}: {str(e)}")
         return {"success": False, "error": "An unexpected error occurred."}
 
-
+# This function allows users to set their lineups after drafting
 @login_required
 def select_lineup(request):
-    # This function allows users to set their lineups after drafting
-    # league = get_object_or_404(League, id=league_id)
-
     # Checks if the user already has selected a team
     team, created = LeagueTeam.objects.get_or_create(user=request.user)
 
@@ -432,11 +434,12 @@ def select_lineup(request):
     }
     return render(request, 'select_lineup.html', context)
 
-
+# Enables us to check points player has amassed over the course of the season
 def fetch_past_player_points(player_id):
     player = Player.objects.get(api_football_id=player_id)
     return player.past_points
 
+# Enables the user to view their team
 @login_required
 def my_team_view(request):
     try:
@@ -450,11 +453,11 @@ def my_team_view(request):
         non_captain_points = sum(player.past_points for player in players if player != captain)
         total_points = captain_points + non_captain_points
 
-        # Print debugging information for verification
-        print("My Team:")
-        for player in players:
-            player.past_points = calculate_points(player.goals, player.assists, player.saves, player.tackles, player.duels, player.position)
-            print(f"Player: {player.name}, Position: {player.position}, Points: {player.points}, Past Points: {player.past_points}")
+        # Print debugging information for sanity checking
+        # print("My Team:")
+        # for player in players:
+        #     player.past_points = calculate_points(player.goals, player.assists, player.saves, player.tackles, player.duels, player.position)
+        #     print(f"Player: {player.name}, Position: {player.position}, Points: {player.points}, Past Points: {player.past_points}")
 
     except LeagueTeam.DoesNotExist:
         # Handle case where the user does not have a team
@@ -470,6 +473,7 @@ def my_team_view(request):
 
     return render(request, 'my_team.html', context)
 
+# Enables the user to create their league
 @login_required
 def create_league(request):
     if request.method == 'POST':
@@ -488,6 +492,7 @@ def create_league(request):
         form = CreateLeagueForm()
     return render(request, 'create_league.html', {'form': form})
 
+# User can join a league if they have the unique code
 @login_required
 def join_league(request):
     if request.method == 'POST':
@@ -510,6 +515,7 @@ def join_league(request):
         form = JoinLeagueForm()
     return render(request, 'join_league.html', {'form': form})
 
+# Provides a little league detail update
 @login_required
 def league_details(request, league_id):
     league = get_object_or_404(League, id=league_id)
