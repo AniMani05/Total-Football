@@ -1,4 +1,5 @@
 # The following file contains the code that makes the initial API requests to Rapid API
+# It also provides a functionality such that the user can reset the draft
 
 import requests
 import time

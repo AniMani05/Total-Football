@@ -40,14 +40,13 @@ class Player(models.Model):
     new_saves = models.IntegerField(default=0)
     new_duels = models.IntegerField(default=0)
 
+    # for AJAX purposes
     last_updated = models.DateTimeField(null=True, blank=True)
 
-    # API-Football Specific Fields
+    # API-Football Specific Fields -> helps us obtain live player stats more easily
     api_football_id = models.IntegerField(unique=True, null=True, blank=True)
     team_api_id = models.IntegerField(null=True, blank=True)
     league_api_id = models.IntegerField(null=True, blank=True)
-
-    # last_updated = models.DateTimeField(auto_now=True)  # Tracks when player data was last updated
 
     def __str__(self):
         return f"{self.name} ({self.team})"
@@ -123,8 +122,6 @@ class LeagueTeam(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Team in {self.league.name}"
-
-
 
 # DraftPick Model
 class DraftPick(models.Model):

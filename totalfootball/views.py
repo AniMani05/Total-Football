@@ -2,9 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import Http404, HttpResponse, JsonResponse
 from django.contrib import messages
-from django.db.models import Sum, Case, When, F, IntegerField, Value, Subquery, OuterRef
+from django.db.models import Sum
 from django.utils.timezone import now
-from datetime import timedelta
 import logging
 logger = logging.getLogger(__name__)
 
@@ -26,21 +25,19 @@ HEADERS = {
     "x-rapidapi-key": API_KEY,
 }
 
+# Returns all valid player IDs in the database in JSON format
 @login_required
 def get_all_player_ids(request):
-    """
-    Endpoint to return all valid player IDs in the database.
-    """
     player_ids = list(Player.objects.values_list('api_football_id', flat=True))
     return JsonResponse({"player_ids": player_ids})
 
 
 def homepage_action(request):
     # Displays the top ten overall players on the home page
-    top_players = Player.objects.order_by('-points')[:10]
+    top_players = Player.objects.order_by('-past_points')[:10]
 
     # Displays each team and their points
-    teams = Team.objects.all()
+    teams = LeagueTeam.objects.all()
     team_points = []
 
     for team in teams:
@@ -51,7 +48,7 @@ def homepage_action(request):
             captain_points = (team.captain.points or 0) * 2
         
         non_captain_points = team.players.exclude(id=team.captain_id).aggregate(
-            total=Sum('points')
+            total=Sum('past_points')
         )['total'] or 0
 
         total_points = captain_points + non_captain_points

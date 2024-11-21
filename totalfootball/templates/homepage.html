@@ -24,7 +24,7 @@
                             <tr>
                                 <td>{{ player.name }}</td>
                                 <td>{{ player.team }}</td>
-                                <td>{{ player.points }}</td>
+                                <td>{{ player.past_points }}</td>
                             </tr>
                         {% empty %}
                             <tr>
@@ -36,7 +36,7 @@
             </div>
 
             <div class="leaderboard">
-                <h2>Top Users</h2>
+                <h2>League Leaderboard</h2>
                 <table>
                     <thead>
                         <tr>
@@ -58,5 +58,6 @@
                     </tbody>
                 </table>
             </div>
+            
         </div>
 {% endblock %}
