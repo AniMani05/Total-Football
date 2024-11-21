@@ -26,6 +26,15 @@ HEADERS = {
     "x-rapidapi-key": API_KEY,
 }
 
+@login_required
+def get_all_player_ids(request):
+    """
+    Endpoint to return all valid player IDs in the database.
+    """
+    player_ids = list(Player.objects.values_list('api_football_id', flat=True))
+    return JsonResponse({"player_ids": player_ids})
+
+
 def homepage_action(request):
     # Displays the top ten overall players on the home page
     top_players = Player.objects.order_by('-points')[:10]
