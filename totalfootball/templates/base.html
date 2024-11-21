@@ -1,3 +1,5 @@
+<!-- The following serves as a template that other HTML files can inherit from -->
+<!-- The purpose of this is to ensure that stats are being fetched via AJAX no matter what page user is on -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +10,7 @@
     <script src="{% static 'js/update_stats.js' %}"></script>
     
     {% block head %}
-    <!-- Custom CSS for each template can be included here -->
+    
     {% endblock %}
 </head>
 <body>

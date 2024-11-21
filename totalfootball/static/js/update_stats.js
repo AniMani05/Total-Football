@@ -1,17 +1,17 @@
-// Function to fetch all player IDs from the backend
+// Function that fetches all the player ids we want to re-compute stats for
 async function fetchAllPlayerIds() {
     try {
-        const response = await fetch('/get-all-player-ids/'); // Endpoint to return all player IDs
+        const response = await fetch('/get-all-player-ids/'); // Function defined in views that returns JSON object with player ids
         if (response.ok) {
             const data = await response.json();
-            return data.player_ids; // Assume the server sends a JSON object with `player_ids` as an array
+            return data.player_ids; 
         } else {
             console.error("Failed to fetch player IDs:", response.statusText);
         }
     } catch (error) {
         console.error("Error fetching player IDs:", error);
     }
-    return []; // Return an empty array if something goes wrong
+    return []; // base case if we aren't able to collect player data
 }
 
 // Function to get CSRF token
@@ -28,8 +28,6 @@ function getCSRFToken() {
 
 // Function to update player stats via API call
 async function updatePlayerStats(playerId) {
-    console.log(`Attempting to update stats for player ${playerId}...`);
-
     try {
         const response = await fetch(`/update-stats/${playerId}/`, {
             method: 'POST',
@@ -41,6 +39,7 @@ async function updatePlayerStats(playerId) {
 
         if (response.ok) {
             const data = await response.json();
+            // Sanity check statement
             console.log(`Player ${playerId} stats updated successfully:`, JSON.stringify(data.updated_stats, null, 2));
         } else {
             console.error(`Error updating stats for player ${playerId}: ${response.statusText}`);
@@ -54,16 +53,15 @@ async function updatePlayerStats(playerId) {
 function schedulePlayerUpdates(playerIds) {
     console.log("Starting scheduled updates for players:", playerIds);
 
-    // Run updates every 2 minutes (120,000 ms)
+    // Obtain updates every 1 hour by calling updatePlayerStats
     setInterval(() => {
-        console.log("Sending update requests for players.");
         playerIds.forEach((playerId) => {
-            updatePlayerStats(playerId); // Update stats for each player
+            updatePlayerStats(playerId); 
         });
-    }, 60 * 60 * 1000); // 2 minutes in milliseconds
+    }, 60 * 60 * 1000); 
 }
 
-// Fetch all player IDs and start the schedule
+// Fetch all player IDs and start updating every one hour
 fetchAllPlayerIds().then((playerIds) => {
     if (playerIds.length > 0) {
         schedulePlayerUpdates(playerIds);

@@ -1,3 +1,5 @@
+# The following file contains the code that makes the initial API requests to Rapid API
+
 import requests
 import time
 from django.db import transaction
@@ -11,33 +13,28 @@ HEADERS = {
     "x-rapidapi-key": API_KEY,
 }
 
+# The following function ensures that we space out requests to make sure there isn't an overload. 
 def fetch_with_rate_limit(url, headers, params):
-    """
-    Fetch data from the API with rate-limit handling.
-    """
     while True:
         response = requests.get(url, headers=headers, params=params)
-        if response.status_code == 429:  # Rate limit exceeded
+        if response.status_code == 429:  # Rate limit exceeded error
             print("Rate limit exceeded. Retrying after delay...")
-            time.sleep(60)  # Wait for 60 seconds
+            time.sleep(60)  # Wait for 60 seconds as a kind of pause
         elif response.status_code == 200:
             return response
         else:
             response.raise_for_status()
 
+# Safely obtain a player statistic and return the default if None or missing.
 
 def safe_stat_value(stat, default=0):
-    """
-    Safely retrieve a stat value, returning the default if None or missing.
-    """
     return stat if stat is not None else default
 
-
+# Obtains 36 of the best performing players from each of the top 5 leagues in Europe.
+# To ensure that there are enough players of each position, we balance out the number of players picked at each position. 
 def fetch_balanced_top_36():
-    """
-    Fetch and save 36 balanced players (5 Goalkeepers, 10 Defenders, 12 Midfielders, 9 Attackers)
-    """
-    league_id = 140  # Premier League
+    # Example league id for La Liga (Spanish soccer league)
+    league_id = 140  
     season = "2024"
     players_by_position = {"Goalkeeper": [], "Defender": [], "Midfielder": [], "Attacker": []}
     page = 1
@@ -56,7 +53,7 @@ def fetch_balanced_top_36():
                 stats = player_data["statistics"][0]
                 position = stats["games"]["position"]
 
-                # Calculate score based on position-specific weights
+                # The following computes each player's score based on position-specific weights
                 if position == "Goalkeeper":
                     score = (
                         safe_stat_value(stats["games"]["minutes"]) * 0.1 +
@@ -117,19 +114,12 @@ def fetch_balanced_top_36():
         time.sleep(2)  # 2 seconds per request to meet 30 requests per minute
 
     # Sort players by score within each position
-    # for position in players_by_position:
-    #     players_by_position[position] = sorted(
-    #         players_by_position[position], key=lambda x: x["score"], reverse=True
-    #     )
     for position in players_by_position:
         players_by_position[position] = sorted(
             players_by_position[position], key=lambda x: x["score"], reverse=True
         )
-        # print(f"\nTop players for position {position}:")
-        # for player in players_by_position[position]:
-        #     print(f"  {player['name']} - Score: {player['score']:.2f}")
 
-    # Select the top players (3 Goalkeepers, 4 Defenders, 5 Midfielders, 3 Attackers)
+    # Select the top players at each position (3 Goalkeepers, 4 Defenders, 5 Midfielders, 3 Attackers)
     selected_players = (
         players_by_position["Goalkeeper"][:5] +
         players_by_position["Defender"][:10] +
@@ -137,7 +127,7 @@ def fetch_balanced_top_36():
         players_by_position["Attacker"][:9]
     )
 
-    # Save players to the database
+    # Save players to the database using transaction library
     with transaction.atomic():
         for player in selected_players:
             Player.objects.update_or_create(
@@ -153,18 +143,16 @@ def fetch_balanced_top_36():
                     "saves": player["saves"],
                     "duels": player["duels"],
                     "price": 0,  # Set default price or calculate dynamically
-                    "points": 0,  # Save the calculated score
-                    "past_points": int(player["score"]),  # Historical points (if needed)
+                    "points": 0,  # Initialized to 0 because we have not obtained data from any live games yet
+                    "past_points": int(player["score"]),  # Historical points (from previous soccer games)
                     "team_api_id": player["stats"]["team"]["id"],
                     "league_api_id": player["stats"]["league"]["id"],
                 }
             )
 
     print("Top 36 balanced players saved successfully!")
-    print("\nSelected Players:")
-    for player in selected_players:
-        print(f"{player['name']} - {player['position']} - Score: {player['score']:.2f}")
 
+# Resets the draft process if necessary
 def reset_draft(league_id):
     """
     Resets the draft for a specific league.
@@ -183,7 +171,7 @@ def reset_draft(league_id):
             league_team.captain = None
             league_team.save()
 
-        # Reset league draft state
+        # Reset league draft 
         league.draft_started = False
         league.current_pick = 1
         league.round_number = 1
@@ -191,5 +179,6 @@ def reset_draft(league_id):
 
         print(f"Draft for league '{league.name}' has been reset.")
     except League.DoesNotExist:
+        # In the case that we gave a wrong league id
         print("League not found.")
 
