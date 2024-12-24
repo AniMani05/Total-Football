@@ -93,6 +93,28 @@ The winner is determined by the total points accumulated by their team over the 
 - **Player Valuation**: Each player has a monetary value attached, adding another strategic layer to team management.
 
 ---
+## Key Code Features
+
+1. **Backend Framework**:
+   - Developed using **Django**, a powerful Python web framework, for managing the backend logic, data models, and APIs.
+
+2. **Frontend Development**:
+   - Designed the user interface with **HTML/CSS** for layout and styling.
+   - Implemented dynamic, interactive elements using **JavaScript**.
+
+3. **AJAX Integration**:
+   - Leveraged **AJAX** to make asynchronous requests for fetching and updating real-time player statistics from the Rapid Football API.
+
+4. **React for Interactivity**:
+   - Used **React** to build dynamic components, such as the live stats tracker and player selection interface.
+
+5. **Database Management**:
+   - Utilized Django’s ORM for database interactions, ensuring efficient and secure handling of user and team data.
+
+6. **Real-Time Updates**:
+   - Periodic API calls to fetch live player statistics every six hours, keeping data accurate and up-to-date.
+
+---
 
 ## Acknowledgments
 
