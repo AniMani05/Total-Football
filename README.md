@@ -2,9 +2,6 @@
 
 **TotalFootball** is your ultimate destination for an exciting and user-friendly fantasy soccer experience. This application allows users to create, manage, and compete with fantasy soccer teams featuring players from the top European leagues.
 
-> **Note:** The exact implementation code is not provided here, but if you're interested in discussing the project or seeing specific details, feel free to reach out to **anirudhm@andrew.cmu.edu** or **smfisher@andrew.cmu.edu**!
-
-
 ---
 
 ## Purpose of This Project
